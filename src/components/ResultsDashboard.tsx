@@ -32,8 +32,17 @@ export default function ResultsDashboard({
   // Debug logging - more detailed
   console.log('ResultsDashboard - Component rendered');
   console.log('ResultsDashboard - assessmentData:', assessmentData);
-  console.log('ResultsDashboard - assessmentData type:', typeof assessmentData);
-  console.log('ResultsDashboard - assessmentData keys:', assessmentData ? Object.keys(assessmentData) : 'null');
+  
+  if (assessmentData) {
+    console.log('ResultsDashboard - assessmentData type:', typeof assessmentData);
+    console.log('ResultsDashboard - assessmentData keys:', Object.keys(assessmentData));
+    console.log('ResultsDashboard - Required fields check:', {
+      location: assessmentData.location,
+      economicModel: assessmentData.economicModel,
+      politicalStructure: assessmentData.politicalStructure,
+      socialOrganization: assessmentData.socialOrganization
+    });
+  }
   
   // Early return if no assessment data
   if (!assessmentData) {
@@ -56,10 +65,14 @@ export default function ResultsDashboard({
   
   // Validate required fields
   const requiredFields = ['location', 'economicModel', 'politicalStructure', 'socialOrganization'];
-  const missingFields = requiredFields.filter(field => !assessmentData[field as keyof AssessmentData]);
+  const missingFields = requiredFields.filter(field => {
+    const value = assessmentData[field as keyof AssessmentData];
+    return !value || (typeof value === 'string' && value.trim() === '');
+  });
   
   if (missingFields.length > 0) {
     console.error('Missing required fields:', missingFields);
+    console.error('Assessment data received:', assessmentData);
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -81,50 +94,58 @@ export default function ResultsDashboard({
     console.log('ResultsDashboard - generateResults called with:', data);
     
     try {
-    // This would normally call an AI service
-    const baseEfficiency = Math.min(90, (data.resources * 8) + (data.technologyLevel * 5) + (data.educationLevel * 3));
-    const baseRights = Math.min(95, (data.educationLevel * 7) + (data.technologyLevel * 4) + (data.religiousDiversity * 3));
-    const baseAdaptability = Math.min(88, (data.technologyLevel * 8) + (data.educationLevel * 5) + (data.resources * 2));
-    const baseCohesion = Math.min(92, (100 - data.religiousDiversity * 5) + (data.educationLevel * 4) + (data.languages <= 3 ? 20 : 0));
-    
-    return {
-      metrics: {
-        resourceEfficiency: baseEfficiency,
-        rightsProtection: baseRights,
-        adaptability: baseAdaptability,
-        socialCohesion: baseCohesion,
-        economicGrowth: Math.min(85, baseEfficiency * 0.8 + baseAdaptability * 0.2),
-        sustainability: Math.min(90, baseEfficiency * 0.6 + baseAdaptability * 0.4)
-      },
-      politicalAnalysis: {
-        actualGovernanceType: getActualGovernanceType(data),
-        evolutionPrediction: getPoliticalEvolution(data),
-        failureCauses: getPoliticalFailureCauses(data),
-        growthPathways: getPoliticalGrowthPathways(data),
-        institutionalRecommendations: getInstitutionalRecommendations(data)
-      },
-      economicAnalysis: {
-        actualEconomicSystem: getActualEconomicSystem(data),
-        systemEvolution: getEconomicEvolution(data),
-        failureRisks: getEconomicFailureRisks(data),
-        gdpGrowthPathways: getGDPGrowthPathways(data),
-        stabilizationMeasures: getStabilizationMeasures(data)
-      },
-      recommendations: {
-        governanceStructure: getGovernanceRecommendation(data),
-        keyInstitutions: getInstitutionRecommendations(data),
-        economicFramework: getEconomicRecommendation(data),
-        socialPolicies: getSocialPolicyRecommendations(data)
-      },
-      comparisons: {
-        historicalSimilar: getHistoricalComparisons(data),
-        strengthsWeaknesses: getStrengthsWeaknesses(data)
-      },
-      constitution: generateConstitution(data, customPolicies)
-    };
+      // Validate data before processing
+      if (!data.location || !data.economicModel || !data.politicalStructure || !data.socialOrganization) {
+        throw new Error('Missing required assessment data fields');
+      }
+      
+      // This would normally call an AI service
+      const baseEfficiency = Math.min(90, (data.resources * 8) + (data.technologyLevel * 5) + (data.educationLevel * 3));
+      const baseRights = Math.min(95, (data.educationLevel * 7) + (data.technologyLevel * 4) + (data.religiousDiversity * 3));
+      const baseAdaptability = Math.min(88, (data.technologyLevel * 8) + (data.educationLevel * 5) + (data.resources * 2));
+      const baseCohesion = Math.min(92, (100 - data.religiousDiversity * 5) + (data.educationLevel * 4) + (data.languages <= 3 ? 20 : 0));
+      
+      const results = {
+        metrics: {
+          resourceEfficiency: baseEfficiency,
+          rightsProtection: baseRights,
+          adaptability: baseAdaptability,
+          socialCohesion: baseCohesion,
+          economicGrowth: Math.min(85, baseEfficiency * 0.8 + baseAdaptability * 0.2),
+          sustainability: Math.min(90, baseEfficiency * 0.6 + baseAdaptability * 0.4)
+        },
+        politicalAnalysis: {
+          actualGovernanceType: getActualGovernanceType(data),
+          evolutionPrediction: getPoliticalEvolution(data),
+          failureCauses: getPoliticalFailureCauses(data),
+          growthPathways: getPoliticalGrowthPathways(data),
+          institutionalRecommendations: getInstitutionalRecommendations(data)
+        },
+        economicAnalysis: {
+          actualEconomicSystem: getActualEconomicSystem(data),
+          systemEvolution: getEconomicEvolution(data),
+          failureRisks: getEconomicFailureRisks(data),
+          gdpGrowthPathways: getGDPGrowthPathways(data),
+          stabilizationMeasures: getStabilizationMeasures(data)
+        },
+        recommendations: {
+          governanceStructure: getGovernanceRecommendation(data),
+          keyInstitutions: getInstitutionRecommendations(data),
+          economicFramework: getEconomicRecommendation(data),
+          socialPolicies: getSocialPolicyRecommendations(data)
+        },
+        comparisons: {
+          historicalSimilar: getHistoricalComparisons(data),
+          strengthsWeaknesses: getStrengthsWeaknesses(data)
+        },
+        constitution: generateConstitution(data, customPolicies)
+      };
+      
+      console.log('ResultsDashboard - Generated results successfully:', results);
+      return results;
     } catch (error) {
       console.error('Error in generateResults:', error);
-      throw error;
+      throw new Error(`Failed to generate results: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 

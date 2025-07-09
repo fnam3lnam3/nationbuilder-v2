@@ -28,6 +28,8 @@ export default function AssessmentForm({ onComplete, onBack, initialData }: Asse
     healthcare: [],
     security: [],
     resourceManagement: [],
+    security: [],
+    resourceManagement: [],
     legalFramework: []
   });
 
@@ -56,9 +58,20 @@ export default function AssessmentForm({ onComplete, onBack, initialData }: Asse
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
     } else {
-      // Ensure all required fields are filled before completing
-      if (!formData.location || !formData.economicModel || !formData.politicalStructure || !formData.socialOrganization) {
-        alert('Please complete all required fields before proceeding.');
+      // Validate required fields
+      const requiredFields = {
+        location: 'Location Type',
+        economicModel: 'Economic Model',
+        politicalStructure: 'Political Structure',
+        socialOrganization: 'Social Organization'
+      };
+      
+      const missingFields = Object.entries(requiredFields)
+        .filter(([key]) => !formData[key as keyof AssessmentData])
+        .map(([, label]) => label);
+      
+      if (missingFields.length > 0) {
+        alert(`Please complete the following required fields: ${missingFields.join(', ')}`);
         return;
       }
       
@@ -75,6 +88,15 @@ export default function AssessmentForm({ onComplete, onBack, initialData }: Asse
       };
       
       console.log('Submitting assessment data:', completeFormData);
+      
+      // Additional validation before submission
+      if (!completeFormData.location || !completeFormData.economicModel || 
+          !completeFormData.politicalStructure || !completeFormData.socialOrganization) {
+        console.error('Critical validation failed:', completeFormData);
+        alert('Assessment data is incomplete. Please review all steps.');
+        return;
+      }
+      
       onComplete(completeFormData);
     }
   };

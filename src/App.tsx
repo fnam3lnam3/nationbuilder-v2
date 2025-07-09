@@ -103,11 +103,18 @@ function App() {
 
   const handleAssessmentComplete = (data: AssessmentData) => {
     console.log('App.tsx - Assessment completed with data:', data);
+    console.log('App.tsx - Data validation check:', {
+      hasLocation: !!data.location,
+      hasEconomicModel: !!data.economicModel,
+      hasPoliticalStructure: !!data.politicalStructure,
+      hasSocialOrganization: !!data.socialOrganization
+    });
     
     // Validate that we have the required data
     if (!data || !data.location || !data.economicModel || !data.politicalStructure || !data.socialOrganization) {
       console.error('Invalid assessment data received:', data);
-      alert('Assessment data is incomplete. Please try again.');
+      alert('Assessment data is incomplete. Please complete all required fields and try again.');
+      setCurrentState('assessment'); // Go back to assessment instead of staying on results
       return;
     }
     
@@ -126,8 +133,10 @@ function App() {
     setAssessmentData(sanitizedData);
     console.log('App.tsx - Setting state to results with sanitized data:', sanitizedData);
     
-    // Automatically create temporary nation
-    createTemporaryNation(sanitizedData);
+    // Try to create temporary nation, but don't block results if it fails
+    createTemporaryNation(sanitizedData).catch(error => {
+      console.warn('Failed to create temporary nation, but continuing with results:', error);
+    });
     
     setCurrentState('results');
   };

@@ -14,8 +14,8 @@ export interface AssessmentData {
   socialOrganization: string;
   educationSystem: string[];
   healthcare: string[];
-  security?: string[];
-  resourceManagement?: string[];
+  security: string[];
+  resourceManagement: string[];
   legalFramework: string[];
 }
 
