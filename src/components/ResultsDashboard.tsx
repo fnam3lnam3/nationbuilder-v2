@@ -103,18 +103,23 @@ export default function ResultsDashboard({
     return data.politicalStructure || 'Adaptive Democratic Republic';
   };
 
-  const getPoliticalEvolution = (data: AssessmentData): string => {
-    const timeframes = [];
+  const getPoliticalEvolution = (data: AssessmentData): string[] => {
+    const phases = [];
     if (data.technologyLevel >= 7) {
-      timeframes.push('5-10 years: Integration of AI-assisted decision making');
+      phases.push('5-10 years: Integration of AI-assisted decision making');
     }
     if (data.educationLevel >= 8) {
-      timeframes.push('10-15 years: Transition to more direct democratic participation');
+      phases.push('10-15 years: Transition to more direct democratic participation');
     }
     if (data.population > 50000000) {
-      timeframes.push('15-25 years: Potential federal restructuring for better representation');
+      phases.push('15-25 years: Potential federal restructuring for better representation');
     }
-    return timeframes.join('; ') || 'Gradual institutional strengthening over 20-30 years';
+    if (phases.length === 0) {
+      phases.push('0-10 years: Gradual institutional strengthening and democratic consolidation');
+      phases.push('10-20 years: Enhanced citizen participation and government efficiency');
+      phases.push('20-30 years: Mature democratic institutions with adaptive capacity');
+    }
+    return phases;
   };
 
   const getPoliticalFailureCauses = (data: AssessmentData): string[] => {
@@ -161,7 +166,7 @@ export default function ResultsDashboard({
     return 'Regulated Market Economy with Strong Social Safety Net';
   };
 
-  const getEconomicEvolution = (data: AssessmentData): string => {
+  const getEconomicEvolution = (data: AssessmentData): string[] => {
     const phases = [];
     phases.push('Phase 1 (0-5 years): Economic stabilization and infrastructure development');
     if (data.technologyLevel >= 6) {
@@ -171,7 +176,7 @@ export default function ResultsDashboard({
       phases.push('Phase 3 (15-25 years): Knowledge economy transition with innovation clusters');
     }
     phases.push('Phase 4 (25+ years): Sustainable circular economy with advanced resource recycling');
-    return phases.join('; ');
+    return phases;
   };
 
   const getEconomicFailureRisks = (data: AssessmentData): string[] => {
@@ -202,6 +207,40 @@ export default function ResultsDashboard({
     measures.push('Create counter-cyclical fiscal policy framework');
     if (data.environmentalChallenges.length > 3) measures.push('Build climate-resilient economic infrastructure');
     return measures;
+  };
+
+  const getTopPriorities = (data: AssessmentData): string[] => {
+    const priorities = [];
+    
+    // Priority 1: Address the most critical weakness
+    if (data.resources <= 3) {
+      priorities.push('Resource Diversification: Immediately develop alternative resource sources and establish strategic reserves to reduce dependency vulnerabilities that could trigger economic collapse within 10-15 years.');
+    } else if (data.educationLevel <= 4) {
+      priorities.push('Education System Overhaul: Launch comprehensive education reform with technology integration to build human capital - the foundation for long-term economic growth and democratic stability.');
+    } else if (data.environmentalChallenges.length > 5) {
+      priorities.push('Environmental Crisis Management: Implement emergency environmental protection measures and climate adaptation infrastructure to prevent ecological collapse from overwhelming governance capacity.');
+    } else if (data.languages > 7 || data.religiousDiversity > 8) {
+      priorities.push('National Unity Framework: Establish inclusive governance structures and cultural integration programs to prevent fragmentation and separatist movements that threaten national cohesion.');
+    } else if (data.technologyLevel <= 3 && data.population > 50000000) {
+      priorities.push('Technology Infrastructure Development: Rapidly modernize communication and administrative systems to handle governance scale - critical for preventing institutional breakdown in large populations.');
+    } else {
+      priorities.push('Institutional Strengthening: Establish robust checks and balances, anti-corruption mechanisms, and transparent governance processes to prevent democratic backsliding during future crises.');
+    }
+    
+    // Priority 2: Build long-term growth foundation
+    if (data.technologyLevel >= 7 && data.educationLevel >= 7) {
+      priorities.push('Innovation Economy Transition: Create advanced research institutions and technology transfer programs to leverage your high human capital for sustained economic growth and global competitiveness.');
+    } else if (data.resources >= 7 && data.technologyLevel <= 5) {
+      priorities.push('Resource-to-Technology Pipeline: Establish sovereign wealth fund and invest resource revenues in technology development and education to avoid the "resource curse" and build sustainable prosperity.');
+    } else if (data.population < 10000000 && data.educationLevel >= 6) {
+      priorities.push('Specialized Economy Development: Focus on high-value niche industries and services that leverage your educated population size advantage for disproportionate economic impact.');
+    } else if (data.healthcare.includes('Universal access') && data.educationSystem.includes('Universal public')) {
+      priorities.push('Social Capital Optimization: Strengthen your universal systems with performance metrics and citizen feedback mechanisms to maximize the "Nordic model" advantages for long-term stability.');
+    } else {
+      priorities.push('Economic Diversification Strategy: Develop multiple economic sectors and reduce single-point-of-failure risks through strategic industrial policy and international trade partnerships.');
+    }
+    
+    return priorities.slice(0, 2); // Return top 2 priorities
   };
 
   const getGovernanceRecommendation = (data: AssessmentData): string => {
@@ -549,7 +588,11 @@ export default function ResultsDashboard({
                 </div>
                 <div>
                   <h4 className="font-bold text-gray-800">Evolution Prediction</h4>
-                  <p className="text-gray-600">{results.politicalAnalysis.evolutionPrediction}</p>
+                  <ul className="text-gray-600 list-disc list-inside space-y-1">
+                    {results.politicalAnalysis.evolutionPrediction.map((phase, index) => (
+                      <li key={index}>{phase}</li>
+                    ))}
+                  </ul>
                 </div>
                 <div>
                   <h4 className="font-medium text-red-700">Most Likely Causes of Nation Failure</h4>
@@ -580,7 +623,11 @@ export default function ResultsDashboard({
                 </div>
                 <div>
                   <h4 className="font-bold text-gray-800">System Evolution</h4>
-                  <p className="text-gray-600">{results.economicAnalysis.systemEvolution}</p>
+                  <ul className="text-gray-600 list-disc list-inside space-y-1">
+                    {results.economicAnalysis.systemEvolution.map((phase, index) => (
+                      <li key={index}>{phase}</li>
+                    ))}
+                  </ul>
                 </div>
                 <div>
                   <h4 className="font-medium text-red-700">Economic System Failure Risks</h4>
@@ -598,6 +645,13 @@ export default function ResultsDashboard({
                     ))}
                   </ul>
                 </div>
+              </div>
+            </div>
+
+            {/* Top Priorities Section */}
+            <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Stabilization Measures</h3>
+              <div className="space-y-4">
                 <div>
                   <h4 className="font-medium text-blue-700">Stabilization Measures</h4>
                   <ul className="text-gray-600 list-disc list-inside">
@@ -605,6 +659,16 @@ export default function ResultsDashboard({
                       <li key={measure}>{measure}</li>
                     ))}
                   </ul>
+                </div>
+                <div>
+                  <h4 className="font-bold text-red-700">Top Priorities</h4>
+                  <div className="space-y-3 mt-2">
+                    {getTopPriorities(assessmentData).map((priority, index) => (
+                      <div key={index} className="bg-red-50 border-l-4 border-red-500 p-3">
+                        <p className="text-red-800 font-medium text-sm leading-relaxed">{priority}</p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
