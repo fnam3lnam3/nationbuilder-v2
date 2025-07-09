@@ -164,10 +164,19 @@ export default function LandingPage({
             </span>
           </h2>
           <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Make a Utopia. Rule a Dystopia.
+            Make a Utopia. Rule a Dystopia. Colonize Mars.
           </p>
           <p className="text-xl text-blue-100 mb-4 max-w-2xl mx-auto -mt-4">
-            Colonize Mars. Compare with others.
+            <a 
+              href="#leaderboard" 
+              className="text-blue-200 hover:text-white underline transition-colors cursor-pointer"
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById('leaderboard')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
+              Compare with others.
+            </a>
           </p>
           <p className="text-base text-blue-100 mb-8 max-w-2xl mx-auto">
             AI GPT-powered analysis of government, economics, society, and environments that you define. Generates a model constitution for your nation. Uses human history and probability simulation to optimize your nation's success.
@@ -312,11 +321,13 @@ export default function LandingPage({
       </section>
 
       {/* Leaderboard Section */}
-      <LeaderboardSection 
+      <div id="leaderboard">
+        <LeaderboardSection 
         onViewNation={handleViewLeaderboardNation}
         user={user}
         onLogin={onLogin}
       />
+      </div>
 
       {/* Key Metrics Preview */}
       <section className="px-6 py-16">
