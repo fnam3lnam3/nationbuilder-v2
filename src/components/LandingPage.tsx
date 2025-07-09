@@ -111,7 +111,7 @@ export default function LandingPage({
             {user ? (
               <>
                 <div className="flex items-center space-x-2">
-                  <span className="text-blue-100">Welcome, {user.username}</span>
+                  <span className="text-blue-100 text-sm">{user.username}</span>
                   {subscription?.subscription_status === 'active' && (
                     <span className="bg-yellow-500 text-yellow-900 px-2 py-1 rounded-full text-xs font-medium">
                       Premium
@@ -166,10 +166,10 @@ export default function LandingPage({
           <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
             Make a Utopia. Rule a Dystopia. Colonize Mars.
           </p>
-          <p className="text-xl text-blue-100 mb-4 max-w-2xl mx-auto -mt-4">
+          <p className="text-xl text-blue-100 mb-4 max-w-2xl mx-auto -mt-6">
             <a 
               href="#leaderboard" 
-              className="text-blue-200 hover:text-white underline transition-colors cursor-pointer"
+              className="text-blue-200 hover:text-white transition-colors cursor-pointer"
               onClick={(e) => {
                 e.preventDefault();
                 document.getElementById('leaderboard')?.scrollIntoView({ behavior: 'smooth' });
