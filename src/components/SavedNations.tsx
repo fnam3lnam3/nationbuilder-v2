@@ -1,7 +1,9 @@
 import React from 'react';
-import { Globe, Calendar, Trash2, Edit, Eye, Share2, Copy, Check, Trophy, Trophy as TrophyOff } from 'lucide-react';
+import { Globe, Calendar, Trash2, Edit, Eye, Share2, Copy, Check, Trophy, Trophy as TrophyOff, Users, Swords } from 'lucide-react';
 import { SavedNation } from '../types';
 import { useState } from 'react';
+import { toggleLeaderboardVisibility, checkLeaderboardVisibility } from '../utils/leaderboard';
+import NationVsNation from './NationVsNation';
 
 interface SavedNationsProps {
   nations: SavedNation[];
@@ -12,6 +14,25 @@ interface SavedNationsProps {
 
 export default function SavedNations({ nations, onLoad, onDelete, onEdit }: SavedNationsProps) {
   const [copiedNationId, setCopiedNationId] = useState<string | null>(null);
+  const [leaderboardVisibility, setLeaderboardVisibility] = useState<Record<string, boolean>>({});
+  const [loadingVisibility, setLoadingVisibility] = useState<string | null>(null);
+  const [showNationVsNation, setShowNationVsNation] = useState(false);
+
+  // Load leaderboard visibility status for all nations
+  React.useEffect(() => {
+    const loadVisibilityStatus = async () => {
+      const visibilityMap: Record<string, boolean> = {};
+      for (const nation of nations) {
+        const isVisible = await checkLeaderboardVisibility(nation.id);
+        visibilityMap[nation.id] = isVisible;
+      }
+      setLeaderboardVisibility(visibilityMap);
+    };
+
+    if (nations.length > 0) {
+      loadVisibilityStatus();
+    }
+  }, [nations]);
 
   const handleDelete = (nationId: string, nationName: string) => {
     if (window.confirm(`Are you sure you want to delete "${nationName}"? This action cannot be undone.`)) {
@@ -45,6 +66,22 @@ export default function SavedNations({ nations, onLoad, onDelete, onEdit }: Save
     }
   };
 
+  const handleTogglePublicVisibility = async (nation: SavedNation) => {
+    setLoadingVisibility(nation.id);
+    try {
+      const newVisibility = await toggleLeaderboardVisibility(nation.id);
+      setLeaderboardVisibility(prev => ({
+        ...prev,
+        [nation.id]: newVisibility
+      }));
+    } catch (error) {
+      console.error('Failed to toggle visibility:', error);
+      alert('Failed to update visibility. Please try again.');
+    } finally {
+      setLoadingVisibility(null);
+    }
+  };
+
   if (nations.length === 0) {
     return (
       <div className="bg-white rounded-lg p-8 text-center border border-gray-200">
@@ -57,6 +94,35 @@ export default function SavedNations({ nations, onLoad, onDelete, onEdit }: Save
 
   return (
     <>
+      {showNationVsNation ? (
+        <NationVsNation 
+          userNations={nations}
+          onClose={() => setShowNationVsNation(false)}
+        />
+      ) : (
+        <>
+          {/* Nation vs Nation Feature Button */}
+          <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-6 mb-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <Swords className="h-8 w-8 text-white" />
+                <div>
+                  <h3 className="text-xl font-bold text-white">Nation vs Nation</h3>
+                  <p className="text-blue-100 text-sm">
+                    Compare your nations with historical archetypes and other users' creations
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowNationVsNation(true)}
+                disabled={nations.length === 0}
+                className="bg-white hover:bg-gray-100 disabled:opacity-50 text-blue-600 font-semibold px-6 py-3 rounded-lg transition-colors"
+              >
+                Start Comparison
+              </button>
+            </div>
+          </div>
+
       <div className="space-y-4">
         <h3 className="text-lg font-semibold text-gray-900">Your Saved Nations ({nations.length}/5)</h3>
         <div className="grid gap-4">
@@ -82,6 +148,22 @@ export default function SavedNations({ nations, onLoad, onDelete, onEdit }: Save
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => handleTogglePublicVisibility(nation)}
+                    disabled={loadingVisibility === nation.id}
+                    className={`p-2 rounded-lg transition-colors ${
+                      leaderboardVisibility[nation.id]
+                        ? 'text-green-600 hover:bg-green-50'
+                        : 'text-gray-400 hover:bg-gray-50'
+                    }`}
+                    title={leaderboardVisibility[nation.id] ? 'Remove from Public Leaderboard' : 'Add to Public Leaderboard'}
+                  >
+                    {loadingVisibility === nation.id ? (
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
+                    ) : (
+                      <Users className="h-4 w-4" />
+                    )}
+                  </button>
                   <button
                     onClick={() => handleShare(nation)}
                     className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
@@ -120,6 +202,8 @@ export default function SavedNations({ nations, onLoad, onDelete, onEdit }: Save
           ))}
         </div>
       </div>
+        </>
+      )}
       {copiedNationId && (
         <div className="fixed bottom-4 right-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg flex items-center space-x-2 z-50">
           <Check className="h-4 w-4" />
