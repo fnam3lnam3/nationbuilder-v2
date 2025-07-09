@@ -1,1005 +1,932 @@
-import React, { useState } from 'react';
-import { Download, Share2, RefreshCw, ChevronLeft, BarChart3, PieChart, TrendingUp, Shield, Edit3, Save, LogIn } from 'lucide-react';
-import PolicyEditor from './PolicyEditor';
-import QuadrantChart from './QuadrantChart';
-import { AssessmentData, User, ResultsData } from '../types';
+import React, { useState, useEffect } from 'react';
+import { 
+  User, 
+  Crown, 
+  Shield, 
+  Eye, 
+  EyeOff, 
+  Lock, 
+  Unlock, 
+  Download, 
+  LogOut, 
+  Settings, 
+  Trophy,
+  Globe,
+  Calendar,
+  X,
+  CreditCard,
+  AlertTriangle
+} from 'lucide-react';
+import { createClient } from '@supabase/supabase-js';
+import SavedNations from './SavedNations';
+import { SavedNation } from '../types';
+import { analytics } from '../utils/analytics';
 
-interface ResultsDashboardProps {
-  assessmentData: AssessmentData;
-  customPolicies?: Record<string, string>;
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
+
+interface UserProfileProps {
+  user: any;
+  subscription: any;
+  savedNations: SavedNation[];
+  onLoad: (nation: SavedNation) => void;
+  onDelete: (nationId: string) => void;
+  onEdit: (nation: SavedNation) => void;
+  onLogout: () => void;
+  onShowSubscriptionPlans: () => void;
   onBack: () => void;
-  onStartNew: () => void;
-  onPolicyUpdate: (policies: Record<string, string>) => void;
-  user?: User | null;
-  onLogin: () => void;
-  onSaveNation: (name: string) => void;
-  isExistingNation?: boolean;
 }
 
-export default function ResultsDashboard({ 
-  assessmentData, 
-  customPolicies = {}, 
-  onBack, 
-  onStartNew, 
-  onPolicyUpdate,
-  user,
-  onLogin,
-  onSaveNation,
-  isExistingNation = false
-}: ResultsDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'constitution' | 'analysis'>('overview');
-  const [showPolicyEditor, setShowPolicyEditor] = useState(false);
-  
-  // Debug logging
-  console.log('ResultsDashboard rendered with assessmentData:', assessmentData);
-  
-  // Early return if no assessment data
-  if (!assessmentData) {
-    console.error('No assessment data provided to ResultsDashboard');
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Loading Results...</h2>
-          <p className="text-gray-600">Processing your nation assessment...</p>
-        </div>
-      </div>
-    );
-  }
-  
-  // Mock results generation based on assessment data
-  const generateResults = (data: AssessmentData): ResultsData => {
-    // This would normally call an AI service
-    const baseEfficiency = Math.min(90, (data.resources * 8) + (data.technologyLevel * 5) + (data.educationLevel * 3));
-    const baseRights = Math.min(95, (data.educationLevel * 7) + (data.technologyLevel * 4) + (data.religiousDiversity * 3));
-    const baseAdaptability = Math.min(88, (data.technologyLevel * 8) + (data.educationLevel * 5) + (data.resources * 2));
-    const baseCohesion = Math.min(92, (100 - data.religiousDiversity * 5) + (data.educationLevel * 4) + (data.languages <= 3 ? 20 : 0));
+interface PrivacySettings {
+  email: boolean;
+  createdAt: boolean;
+  subscriptionStatus: boolean;
+  activityLog: boolean;
+  origin: boolean;
+  ageRange: boolean;
+}
+
+interface LeaderboardEntry {
+  nationId: string;
+  nationName: string;
+  category: 'Utopia' | 'Dystopia' | 'Mars Colony';
+  rank: number;
+  duration: string;
+}
+
+export default function UserProfile({ 
+  user, 
+  subscription, 
+  savedNations, 
+  onLoad, 
+  onDelete, 
+  onEdit, 
+  onLogout,
+  onShowSubscriptionPlans,
+  onBack 
+}: UserProfileProps) {
+  const [activeTab, setActiveTab] = useState<'overview' | 'nations' | 'settings'>('overview');
+  const [privacySettings, setPrivacySettings] = useState<PrivacySettings>({
+    email: false,
+    createdAt: false,
+    subscriptionStatus: false,
+    activityLog: false,
+    origin: false,
+    ageRange: false
+  });
+  const [leaderboardEntries, setLeaderboardEntries] = useState<LeaderboardEntry[]>([]);
+  const [sharedNations, setSharedNations] = useState<SavedNation[]>([]);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [showCancelDetails, setShowCancelDetails] = useState(false);
+  const [showCancelSuccess, setShowCancelSuccess] = useState(false);
+  const [show2FASetup, setShow2FASetup] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+
+  const isPremium = subscription?.subscription_status === 'active';
+  const subscriptionEndDate = subscription?.current_period_end 
+    ? new Date(subscription.current_period_end * 1000).toLocaleDateString()
+    : null;
+
+  // Calculate age range based on user's age
+  const getAgeRange = (age: number): string => {
+    if (age < 18) return 'Minor under 18 years old';
+    if (age <= 23) return '18 - 23 years old';
+    if (age <= 27) return '24 - 27 years old';
+    if (age <= 30) return '28 - 30 years old';
+    if (age <= 35) return '31 - 35 years old';
+    if (age <= 40) return '36 - 40 years old';
+    if (age <= 45) return '41 - 45 years old';
+    if (age <= 50) return '46 - 50 years old';
+    if (age <= 55) return '51 - 55 years old';
+    if (age <= 60) return '56 - 60 years old';
+    if (age <= 65) return '61 - 65 years old';
+    if (age <= 70) return '66 - 70 years old';
+    if (age <= 75) return '71 - 75 years old';
+    if (age <= 80) return '76 - 80 years old';
+    if (age <= 89) return '81 - 89 years old';
+    if (age <= 99) return '90 - 99 years old';
+    if (age <= 110) return '100 - 110 years old';
+    return '111+ years old';
+  };
+
+  useEffect(() => {
+    loadLeaderboardData();
+    loadSharedNations();
+  }, [savedNations]);
+
+  const loadLeaderboardData = async () => {
+    // Mock leaderboard data - in real app would query actual leaderboard positions
+    const mockEntries: LeaderboardEntry[] = [
+      {
+        nationId: savedNations[0]?.id || '',
+        nationName: savedNations[0]?.name || 'Sample Nation',
+        category: 'Utopia',
+        rank: 15,
+        duration: '2 weeks'
+      }
+    ];
+    setLeaderboardEntries(mockEntries.filter(entry => entry.nationId));
+  };
+
+  const loadSharedNations = () => {
+    // Filter nations that are public/shared
+    const shared = savedNations.filter(nation => nation.isPublic);
+    setSharedNations(shared);
+  };
+
+  const handlePrivacyToggle = (setting: keyof PrivacySettings) => {
+    setPrivacySettings(prev => ({
+      ...prev,
+      [setting]: !prev[setting]
+    }));
+  };
+
+  const downloadActivityLog = () => {
+    const report = analytics.generateReport();
     
-    return {
-      metrics: {
-        resourceEfficiency: baseEfficiency,
-        rightsProtection: baseRights,
-        adaptability: baseAdaptability,
-        socialCohesion: baseCohesion,
-        economicGrowth: Math.min(85, baseEfficiency * 0.8 + baseAdaptability * 0.2),
-        sustainability: Math.min(90, baseEfficiency * 0.6 + baseAdaptability * 0.4)
+    // Create bulleted summary
+    const summary = [
+      `• User: ${user.username} (${privacySettings.email ? user.email : '[HIDDEN]'})`,
+      `• Account Type: ${isPremium ? 'Premium' : 'Freemium'}`,
+      `• Member Since: ${privacySettings.createdAt ? new Date(user.createdAt).toLocaleDateString() : '[HIDDEN]'}`,
+      `• Total Logins: ${report.totalLogins}`,
+      `• Average Session Time: ${report.averageSessionTimeMinutes} minutes`,
+      `• Nations Created: ${report.totalNationsCreated}`,
+      `• Saved Nations: ${savedNations.length}/${isPremium ? 30 : 5}`,
+      `• Public Nations: ${sharedNations.length}`,
+      `• Leaderboard Entries: ${leaderboardEntries.length}`,
+      `• Privacy Settings: ${Object.entries(privacySettings).filter(([_, visible]) => visible).length} fields visible`,
+      `• Last Activity: ${new Date().toLocaleString()}`
+    ];
+    
+    const activityData = {
+      user: {
+        id: user.id,
+        username: user.username,
+        email: privacySettings.email ? user.email : '[HIDDEN]',
+        createdAt: privacySettings.createdAt ? user.createdAt : '[HIDDEN]',
+        city: privacySettings.origin ? user.city : '[HIDDEN]',
+        country: privacySettings.origin ? user.country : '[HIDDEN]',
+        ageRange: privacySettings.ageRange ? getAgeRange(user.age) : '[HIDDEN]'
       },
-      politicalAnalysis: {
-        actualGovernanceType: getActualGovernanceType(data),
-        evolutionPrediction: getPoliticalEvolution(data),
-        failureCauses: getPoliticalFailureCauses(data),
-        growthPathways: getPoliticalGrowthPathways(data),
-        institutionalRecommendations: getInstitutionalRecommendations(data)
+      subscription: {
+        status: privacySettings.subscriptionStatus ? (subscription?.subscription_status || 'free') : '[HIDDEN]',
+        type: isPremium ? 'Premium' : 'Freemium'
       },
-      economicAnalysis: {
-        actualEconomicSystem: getActualEconomicSystem(data),
-        systemEvolution: getEconomicEvolution(data),
-        failureRisks: getEconomicFailureRisks(data),
-        gdpGrowthPathways: getGDPGrowthPathways(data),
-        stabilizationMeasures: getStabilizationMeasures(data)
+      activity: {
+        totalLogins: report.totalLogins,
+        averageSessionTime: report.averageSessionTimeMinutes,
+        nationsCreated: report.totalNationsCreated,
+        lastActivity: new Date().toISOString()
       },
-      recommendations: {
-        governanceStructure: getGovernanceRecommendation(data),
-        keyInstitutions: getInstitutionRecommendations(data),
-        economicFramework: getEconomicRecommendation(data),
-        socialPolicies: getSocialPolicyRecommendations(data)
-      },
-      comparisons: {
-        historicalSimilar: getHistoricalComparisons(data),
-        strengthsWeaknesses: getStrengthsWeaknesses(data)
-      },
-      constitution: generateConstitution(data, customPolicies)
+      nations: {
+        total: savedNations.length,
+        shared: sharedNations.length,
+        leaderboardEntries: leaderboardEntries.length
+      }
     };
-  };
 
-  const getActualGovernanceType = (data: AssessmentData): string => {
-    if (data.technologyLevel >= 8 && data.educationLevel >= 7) {
-      return 'Digital Techno-Democracy with AI Advisory Systems';
-    }
-    if (data.population > 100000000 && data.languages > 5) {
-      return 'Federal Representative Democracy with Regional Autonomy';
-    }
-    if (data.resources <= 3 && data.environmentalChallenges.length > 4) {
-      return 'Crisis-Responsive Technocratic Republic';
-    }
-    return data.politicalStructure || 'Adaptive Democratic Republic';
-  };
+    const content = `USER ACTIVITY LOG
+${'='.repeat(50)}
 
-  const getPoliticalEvolution = (data: AssessmentData): string[] => {
-    const phases = [];
-    if (data.technologyLevel >= 7) {
-      phases.push('5-10 years: Integration of AI-assisted decision making');
-    }
-    if (data.educationLevel >= 8) {
-      phases.push('10-15 years: Transition to more direct democratic participation');
-    }
-    if (data.population > 50000000) {
-      phases.push('15-25 years: Potential federal restructuring for better representation');
-    }
-    if (phases.length === 0) {
-      phases.push('0-10 years: Gradual institutional strengthening and democratic consolidation');
-      phases.push('10-20 years: Enhanced citizen participation and government efficiency');
-      phases.push('20-30 years: Mature democratic institutions with adaptive capacity');
-    }
-    return phases;
-  };
+SUMMARY
+${summary.join('\n')}
 
-  const getPoliticalFailureCauses = (data: AssessmentData): string[] => {
-    const risks = [];
-    if (data.languages > 7) risks.push('Linguistic fragmentation leading to separatist movements');
-    if (data.religiousDiversity > 8) risks.push('Religious conflicts undermining national unity');
-    if (data.resources <= 2) risks.push('Resource scarcity causing governmental legitimacy crisis');
-    if (data.environmentalChallenges.length > 5) risks.push('Environmental disasters overwhelming institutional capacity');
-    if (data.population > 500000000 && data.technologyLevel < 6) risks.push('Governance scale exceeding technological capacity');
-    return risks.length > 0 ? risks : ['Democratic backsliding during economic crisis', 'Institutional corruption undermining public trust'];
-  };
+DETAILED DATA
+${'='.repeat(50)}
+${JSON.stringify(activityData, null, 2)}
 
-  const getPoliticalGrowthPathways = (data: AssessmentData): string[] => {
-    const pathways = [];
-    if (data.educationLevel >= 7) pathways.push('Citizen education programs enhancing democratic participation');
-    if (data.technologyLevel >= 6) pathways.push('Digital governance platforms increasing transparency and efficiency');
-    if (data.legalFramework.includes('Dispute resolution')) pathways.push('Strengthened judicial independence and rule of law');
-    pathways.push('Regional governance experiments testing innovative democratic models');
-    return pathways;
-  };
-
-  const getInstitutionalRecommendations = (data: AssessmentData): string[] => {
-    const institutions = ['Constitutional Court', 'Electoral Commission', 'Anti-Corruption Agency'];
-    if (data.technologyLevel >= 7) institutions.push('Digital Governance Innovation Lab');
-    if (data.environmentalChallenges.length > 3) institutions.push('Climate Adaptation Authority');
-    if (data.languages > 3) institutions.push('Linguistic Rights Commission');
-    if (data.resources <= 4) institutions.push('Strategic Resource Management Council');
-    return institutions;
-  };
-
-  const getActualEconomicSystem = (data: AssessmentData): string => {
-    if (data.resources >= 8 && data.location === 'Space station or space-traveling coommunity') {
-      return 'Post-Scarcity Resource Distribution Economy';
-    }
-    if (data.technologyLevel >= 8 && data.educationLevel >= 7) {
-      return 'AI-Optimized Mixed Economy with Universal Basic Assets';
-    }
-    if (data.resources <= 3 && data.environmentalChallenges.length > 4) {
-      return 'Survival-Focused Command Economy with Market Elements';
-    }
-    if (data.population < 100000 && Array.isArray(data.socialOrganization) && data.socialOrganization.includes('Communalism')) {
-      return 'Cooperative Community Economy with Limited Markets';
-    }
-    return 'Regulated Market Economy with Strong Social Safety Net';
-  };
-
-  const getEconomicEvolution = (data: AssessmentData): string[] => {
-    const phases = [];
-    phases.push('Phase 1 (0-5 years): Economic stabilization and infrastructure development');
-    if (data.technologyLevel >= 6) {
-      phases.push('Phase 2 (5-15 years): Technology-driven productivity growth and automation integration');
-    }
-    if (data.educationLevel >= 7) {
-      phases.push('Phase 3 (15-25 years): Knowledge economy transition with innovation clusters');
-    }
-    phases.push('Phase 4 (25+ years): Sustainable circular economy with advanced resource recycling');
-    return phases;
-  };
-
-  const getEconomicFailureRisks = (data: AssessmentData): string[] => {
-    const risks = [];
-    if (data.resources <= 3) risks.push('Resource depletion crisis within 10-15 years');
-    if (data.technologyLevel >= 8) risks.push('Technological unemployment exceeding retraining capacity');
-    if (data.environmentalChallenges.includes('Climate instability')) risks.push('Climate-induced economic disruption');
-    if (data.population > 100000000 && data.educationLevel < 5) risks.push('Demographic dividend failure due to skill gaps');
-    if (data.location === 'Space station or space-traveling coommunity') risks.push('Supply chain vulnerability from Earth dependence');
-    return risks.length > 0 ? risks : ['Market volatility from external trade dependence', 'Inequality-driven social unrest'];
-  };
-
-  const getGDPGrowthPathways = (data: AssessmentData): string[] => {
-    const pathways = [];
-    if (data.educationLevel >= 6) pathways.push('Human capital development: 2-4% annual GDP growth through education');
-    if (data.technologyLevel >= 7) pathways.push('Innovation economy: 3-6% growth through R&D and tech adoption');
-    if (data.resources >= 6) pathways.push('Resource optimization: 1-3% growth through efficient extraction and processing');
-    if (data.healthcare.includes('Universal access')) pathways.push('Health dividend: 1-2% growth through improved population health');
-    pathways.push('Infrastructure investment: 2-5% growth through strategic development projects');
-    return pathways;
-  };
-
-  const getStabilizationMeasures = (data: AssessmentData): string[] => {
-    const measures = [];
-    measures.push('Establish sovereign wealth fund for economic buffer');
-    if (data.resources <= 4) measures.push('Diversify economy away from resource dependence');
-    if (data.technologyLevel >= 6) measures.push('Implement universal basic income pilot programs');
-    measures.push('Create counter-cyclical fiscal policy framework');
-    if (data.environmentalChallenges.length > 3) measures.push('Build climate-resilient economic infrastructure');
-    return measures;
-  };
-
-  const getTopPriorities = (data: AssessmentData): string[] => {
-    const priorities = [];
+Generated: ${new Date().toLocaleString()}
+Report Type: User Activity Log with Privacy Controls
+Data Source: Nationbuilder Analytics System`;
     
-    // Priority 1: Address the most critical weakness
-    if (data.resources <= 3) {
-      priorities.push('Resource Diversification: Immediately develop alternative resource sources and establish strategic reserves to reduce dependency vulnerabilities that could trigger economic collapse within 10-15 years.');
-    } else if (data.educationLevel <= 4) {
-      priorities.push('Education System Overhaul: Launch comprehensive education reform with technology integration to build human capital - the foundation for long-term economic growth and democratic stability.');
-    } else if (data.environmentalChallenges.length > 5) {
-      priorities.push('Environmental Crisis Management: Implement emergency environmental protection measures and climate adaptation infrastructure to prevent ecological collapse from overwhelming governance capacity.');
-    } else if (data.languages > 7 || data.religiousDiversity > 8) {
-      priorities.push('National Unity Framework: Establish inclusive governance structures and cultural integration programs to prevent fragmentation and separatist movements that threaten national cohesion.');
-    } else if (data.technologyLevel <= 3 && data.population > 50000000) {
-      priorities.push('Technology Infrastructure Development: Rapidly modernize communication and administrative systems to handle governance scale - critical for preventing institutional breakdown in large populations.');
-    } else {
-      priorities.push('Institutional Strengthening: Establish robust checks and balances, anti-corruption mechanisms, and transparent governance processes to prevent democratic backsliding during future crises.');
-    }
-    
-    // Priority 2: Build long-term growth foundation
-    if (data.technologyLevel >= 7 && data.educationLevel >= 7) {
-      priorities.push('Innovation Economy Transition: Create advanced research institutions and technology transfer programs to leverage your high human capital for sustained economic growth and global competitiveness.');
-    } else if (data.resources >= 7 && data.technologyLevel <= 5) {
-      priorities.push('Resource-to-Technology Pipeline: Establish sovereign wealth fund and invest resource revenues in technology development and education to avoid the "resource curse" and build sustainable prosperity.');
-    } else if (data.population < 10000000 && data.educationLevel >= 6) {
-      priorities.push('Specialized Economy Development: Focus on high-value niche industries and services that leverage your educated population size advantage for disproportionate economic impact.');
-    } else if (data.healthcare.includes('Universal access') && data.educationSystem.includes('Universal public')) {
-      priorities.push('Social Capital Optimization: Strengthen your universal systems with performance metrics and citizen feedback mechanisms to maximize the "Nordic model" advantages for long-term stability.');
-    } else {
-      priorities.push('Economic Diversification Strategy: Develop multiple economic sectors and reduce single-point-of-failure risks through strategic industrial policy and international trade partnerships.');
-    }
-    
-    return priorities.slice(0, 2); // Return top 2 priorities
-  };
-
-  const getGovernanceRecommendation = (data: AssessmentData): string => {
-    if (data.politicalStructure === 'Direct democracy') return 'Digital Direct Democracy with AI-assisted decision support';
-    if (data.politicalStructure === 'Technocracy') return 'Merit-based Technocratic Council with citizen oversight';
-    if (data.politicalStructure === 'AI-run') return 'Hybrid AI-Human governance with democratic validation';
-    return 'Adaptive Representative Democracy with technological enhancement';
-  };
-
-  const getInstitutionRecommendations = (data: AssessmentData): string[] => {
-    const institutions = ['Legislative Assembly', 'Executive Council', 'Judicial Review Board'];
-    if (data.technologyLevel >= 7) institutions.push('AI Ethics Committee');
-    if (data.environmentalChallenges.length > 3) institutions.push('Environmental Security Council');
-    if (data.resources <= 3) institutions.push('Resource Allocation Authority');
-    return institutions;
-  };
-
-  const getEconomicRecommendation = (data: AssessmentData): string => {
-    if (data.economicModel === 'Barter') return 'Circular Resource Economy with Universal Basic Resources';
-    if (data.economicModel === 'AI-managed') return 'AI-Optimized Resource Distribution with Human Oversight';
-    if (data.economicModel === 'Free market') return 'Regulated Market Economy with Strong Social Safety Net';
-    return 'Mixed Economy with Democratic Economic Planning';
-  };
-
-  const getSocialPolicyRecommendations = (data: AssessmentData): string[] => {
-    const policies = ['Universal Education Access', 'Healthcare Guarantee'];
-    if (data.languages > 3) policies.push('Multilingual Rights Protection');
-    if (data.religiousDiversity > 7) policies.push('Religious Freedom Safeguards');
-    if (data.environmentalChallenges.includes('Limited space')) policies.push('Space Optimization Programs');
-    return policies;
-  };
-
-  const getHistoricalComparisons = (data: AssessmentData): string[] => {
-    const comparisons = [];
-    
-    // Check for exact archetype matches first
-    const isUtopianArchetype = data.population === 5800000 && data.territory === 43094 && 
-      data.politicalStructure === 'Representative democracy' && data.economicModel === 'Mixed system' &&
-      data.educationLevel === 9 && data.technologyLevel === 9;
-    
-    const isDystopianArchetype = data.population === 50000 && data.territory === 500000 && 
-      data.politicalStructure === 'Martial law/Anarchic' && data.economicModel === 'Feudal' &&
-      data.educationLevel === 2 && data.technologyLevel === 1;
-    
-    const isMarsArchetype = data.population === 400 && data.territory === 1000 && 
-      data.location === 'Space station or space-traveling coommunity' && data.economicModel === 'Colonialism' &&
-      data.politicalStructure === 'Constitutional monarchy';
-    
-    // Use exact archetype comparisons if assessment wasn't substantially edited
-    if (isUtopianArchetype) {
-      return ['Modern Denmark (2020s)', 'Nordic Social Democracies', 'Scandinavian Welfare States'];
-    }
-    
-    if (isDystopianArchetype) {
-      return ['1600s Siberian Exile Colonies', 'Russian Penal Settlements', 'Harsh Frontier Territories'];
-    }
-    
-    if (isMarsArchetype) {
-      return ['Colonial Australia (1820s-1850s)', 'International Space Station Governance', 'Early Penal Colonies'];
-    }
-    
-    // Expanded historical comparisons library for other cases
-    
-    // Political Structure Comparisons
-    if (data.politicalStructure === 'Direct democracy') {
-      comparisons.push('Ancient Athens (with modern safeguards)', 'Swiss Cantonal Democracy', 'New England Town Meetings');
-    }
-    if (data.politicalStructure === 'Representative democracy') {
-      comparisons.push('United States (1789-present)', 'British Parliamentary System', 'French Third Republic');
-    }
-    if (data.politicalStructure === 'Constitutional monarchy') {
-      comparisons.push('Modern United Kingdom', 'Constitutional Japan (post-1947)', 'Swedish Monarchy');
-    }
-    if (data.politicalStructure === 'Monarchy') {
-      comparisons.push('Absolute France (Louis XIV)', 'Tsarist Russia', 'Imperial China (Qing Dynasty)');
-    }
-    if (data.politicalStructure === 'Fascism') {
-      comparisons.push('Nazi Germany (1933-1945)', 'Fascist Italy (1922-1943)', 'Imperial Japan (1931-1945)');
-    }
-    if (data.politicalStructure === 'Socialism or Mutualism') {
-      comparisons.push('Soviet Union (1922-1991)', 'Cuba (1959-present)', 'Yugoslavia (1945-1992)');
-    }
-    if (data.politicalStructure === 'Theocracy') {
-      comparisons.push('Vatican City State', 'Islamic Republic of Iran', 'Tibet (pre-1950)');
-    }
-    
-    // Economic Model Comparisons
-    if (data.economicModel === 'Free market') {
-      comparisons.push('Gilded Age America (1870s-1900)', 'Hong Kong (1960s-1990s)', 'Laissez-faire Britain (1800s)');
-    }
-    if (data.economicModel === 'Mixed system') {
-      comparisons.push('Post-WWII Western Europe', 'Modern Scandinavian Countries', 'New Deal America (1933-1939)');
-    }
-    if (data.economicModel === 'Regulated market') {
-      comparisons.push('Progressive Era America (1890s-1920s)', 'Social Market Economy Germany', 'Keynesian Britain (1945-1979)');
-    }
-    if (data.economicModel === 'Communistic') {
-      comparisons.push('Soviet Planned Economy', 'Maoist China (1949-1976)', 'Cuban Command Economy');
-    }
-    if (data.economicModel === 'Feudal') {
-      comparisons.push('Medieval Europe (800-1500)', 'Tokugawa Japan (1603-1868)', 'Manorial System England');
-    }
-    if (data.economicModel === 'Barter') {
-      comparisons.push('Pre-Columbian Americas', 'Early Medieval Trade', 'Pacific Island Economies');
-    }
-    if (data.economicModel === 'Dirigisme') {
-      comparisons.push('Gaullist France (1958-1969)', 'South Korean Development (1960s-1980s)', 'Meiji Japan (1868-1912)');
-    }
-    if (data.economicModel === 'Georgism') {
-      comparisons.push('Henry George Movement (1880s)', 'Land Value Tax Experiments', 'Singapore Land Policy');
-    }
-    if (data.economicModel === 'Colonialism') {
-      comparisons.push('British Colonial India', 'Dutch East Indies', 'Spanish Colonial Americas');
-    }
-    if (data.economicModel === 'Corporatism') {
-      comparisons.push('Fascist Italy Economic Model', 'Estado Novo Portugal', 'Salazar Corporate State');
-    }
-    if (data.economicModel === 'Hydraulic despotism') {
-      comparisons.push('Ancient Mesopotamia', 'Imperial China Water Management', 'Inca Empire Agriculture');
-    }
-    if (data.economicModel === 'Distributism') {
-      comparisons.push('Chesterton-Belloc Movement', 'Catholic Social Teaching Economics', 'Cooperative Movements');
-    }
-    if (data.economicModel === 'Potlach') {
-      comparisons.push('Pacific Northwest Indigenous Economies', 'Gift Economy Societies', 'Melanesian Big Man Systems');
-    }
-    if (data.economicModel === 'Social Credit') {
-      comparisons.push('Alberta Social Credit (1935-1971)', 'Douglas Credit Theory', 'New Zealand Social Credit');
-    }
-    if (data.economicModel === 'Anarchy') {
-      comparisons.push('Revolutionary Catalonia (1936-1939)', 'Free Territory Ukraine (1918-1921)', 'Paris Commune (1871)');
-    }
-    
-    // Location-based Comparisons
-    if (data.location === 'Space station or space-traveling coommunity') {
-      comparisons.push('International Space Station Governance', 'Generation Ship Concepts', 'Antarctic Research Stations');
-    }
-    if (data.location === 'Planetary colony') {
-      comparisons.push('Mars Colony Simulations', 'Antarctic Settlements', 'Remote Island Colonies');
-    }
-    if (data.location === 'Underwater') {
-      comparisons.push('Sealab Experiments', 'Submarine Communities', 'Aquarius Reef Base');
-    }
-    if (data.location === 'Virtual/Digital') {
-      comparisons.push('Online Gaming Guilds', 'Digital Nomad Communities', 'Cryptocurrency DAOs');
-    }
-    
-    // Social Organization Comparisons
-    if (Array.isArray(data.socialOrganization)) {
-      if (data.socialOrganization.includes('Merit-based')) {
-        comparisons.push('Imperial Chinese Examination System', 'Singapore Technocratic Model', 'Platonic Republic Ideals');
-      }
-      if (data.socialOrganization.includes('Caste heritage')) {
-        comparisons.push('Traditional Indian Caste System', 'Feudal European Estates', 'Tokugawa Class System');
-      }
-      if (data.socialOrganization.includes('Communalism')) {
-        comparisons.push('Israeli Kibbutz Movement', 'Hutterite Communities', 'Amish Society');
-      }
-      if (data.socialOrganization.includes('Wealth-based')) {
-        comparisons.push('Gilded Age Plutocracy', 'Roman Patrician System', 'Venetian Merchant Republic');
-      }
-      if (data.socialOrganization.includes('Knowledge-based')) {
-        comparisons.push('Ancient Greek Philosopher Kings', 'Medieval Islamic Golden Age', 'Renaissance Italian City-States');
-      }
-      if (data.socialOrganization.includes('Seniority-based')) {
-        comparisons.push('Traditional African Gerontocracy', 'Confucian Age Hierarchy', 'Native American Elder Councils');
-      }
-      if (data.socialOrganization.includes('Ethical acts-based')) {
-        comparisons.push('Quaker Communities', 'Buddhist Sangha', 'Jain Society Structure');
-      }
-    }
-    
-    // Population Size Comparisons
-    if (data.population < 1000) {
-      comparisons.push('Medieval Village Communities', 'Monastic Orders', 'Tribal Societies');
-    } else if (data.population < 100000) {
-      comparisons.push('Ancient City-States', 'Medieval Towns', 'Colonial Settlements');
-    } else if (data.population < 10000000) {
-      comparisons.push('Renaissance Italian States', 'Early Modern Principalities', 'Small Nation-States');
-    } else if (data.population < 100000000) {
-      comparisons.push('19th Century European Nations', 'Modern Medium States', 'Regional Powers');
-    } else {
-      comparisons.push('Great Powers Throughout History', 'Imperial Civilizations', 'Modern Superpowers');
-    }
-    
-    // Technology Level Comparisons
-    if (data.technologyLevel <= 2) {
-      comparisons.push('Stone Age Societies', 'Early Agricultural Civilizations', 'Bronze Age Kingdoms');
-    } else if (data.technologyLevel <= 4) {
-      comparisons.push('Classical Antiquity', 'Medieval Kingdoms', 'Early Modern States');
-    } else if (data.technologyLevel <= 6) {
-      comparisons.push('Industrial Revolution Era', '19th Century Nations', 'Early 20th Century');
-    } else if (data.technologyLevel <= 8) {
-      comparisons.push('Mid-20th Century Developed Nations', 'Post-WWII Reconstruction', 'Cold War Superpowers');
-    } else {
-      comparisons.push('Modern Information Age Societies', '21st Century Tech Leaders', 'Digital Age Nations');
-    }
-    
-    // Environmental Challenge Comparisons
-    if (data.environmentalChallenges.includes('harsh climate')) {
-      comparisons.push('Siberian Settlements', 'Arctic Communities', 'Desert Civilizations');
-    }
-    if (data.environmentalChallenges.includes('Water scarcity')) {
-      comparisons.push('Ancient Mesopotamian Irrigation States', 'Australian Outback Communities', 'Middle Eastern Desert Nations');
-    }
-    if (data.environmentalChallenges.includes('Limited space')) {
-      comparisons.push('Singapore City-State Model', 'Monaco Principality', 'Hong Kong Density Management');
-    }
-    if (data.environmentalChallenges.includes('High radiation')) {
-      comparisons.push('Chernobyl Exclusion Zone', 'Fukushima Recovery Areas', 'Nuclear Test Site Communities');
-    }
-    
-    // Resource Level Comparisons
-    if (data.resources <= 3) {
-      comparisons.push('Resource-Poor Island Nations', 'Desert Survival Communities', 'Post-Disaster Societies');
-    } else if (data.resources >= 8) {
-      comparisons.push('Oil-Rich Gulf States', 'Resource-Abundant Colonial Territories', 'Natural Resource Superpowers');
-    }
-    
-    // Remove duplicates and return top comparisons
-    const uniqueComparisons = [...new Set(comparisons)];
-    
-    // If no specific matches, return general historical examples
-    if (uniqueComparisons.length === 0) {
-      return [
-        'Swiss Federal Democracy',
-        'Nordic Social Model', 
-        'Venetian Republic',
-        'Dutch Golden Age',
-        'Athenian Democracy',
-        'Roman Republic',
-        'British Parliamentary Evolution',
-        'American Federalism'
-      ];
-    }
-    
-    // Return up to 6 most relevant comparisons
-    return uniqueComparisons.slice(0, 6);
-  };
-
-  const getStrengthsWeaknesses = (data: AssessmentData) => {
-    const strengths = [];
-    const weaknesses = [];
-    
-    if (data.educationLevel >= 7) strengths.push('High human capital potential');
-    if (data.technologyLevel >= 7) strengths.push('Advanced technological foundation');
-    if (data.resources >= 7) strengths.push('Abundant natural resources');
-    
-    if (data.languages > 5) weaknesses.push('Communication complexity challenges');
-    if (data.religiousDiversity > 8) weaknesses.push('Potential cultural friction points');
-    if (data.environmentalChallenges.length > 4) weaknesses.push('Environmental stress factors');
-    
-    return { strengths, weaknesses };
-  };
-
-  const generateConstitution = (data: AssessmentData, policies: Record<string, string>) => {
-    const ethicalClause = policies.ethical ? `\n\nEthical Framework: ${policies.ethical}` : '';
-    const economicClause = policies.economic ? `\n\nEconomic Policies: ${policies.economic}` : '';
-    const judicialClause = policies.judicial ? `\n\nJudicial Procedures: ${policies.judicial}` : '';
-    const environmentalClause = policies.environmental ? `\n\nEnvironmental Stewardship: ${policies.environmental}` : '';
-
-    const socialOrgText = Array.isArray(data.socialOrganization) 
-      ? data.socialOrganization.includes('Individualism') ? 'individual liberty and personal responsibility' : 'collective prosperity and social harmony'
-      : data.socialOrganization === 'Individualism' ? 'individual liberty and personal responsibility' : 'collective prosperity and social harmony';
-
-    return {
-      preamble: `We, the people of this nation, united in our commitment to ${socialOrgText}, establish this Constitution to ensure ${data.politicalStructure === 'Direct democracy' ? 'direct democratic participation' : 'effective governance'} and promote the general welfare of all citizens.${ethicalClause}`,
-      articles: [
-        {
-          title: 'Fundamental Rights and Freedoms',
-          content: `All citizens shall enjoy fundamental rights including freedom of expression, assembly, and belief. ${data.legalFramework.includes('Habeas corpus') ? 'Habeas corpus protections ensure no citizen may be detained without legal justification.' : ''} ${data.legalFramework.includes('Trial by peers') ? 'All citizens have the right to trial by a jury of their peers.' : ''} ${data.legalFramework.includes('Ability to appeal judicial judgments') ? 'Citizens may appeal judicial decisions through established appellate processes.' : ''}${judicialClause}`
-        },
-        {
-          title: 'Governance Structure and Institutions',
-          content: `The nation shall be governed through ${data.politicalStructure.toLowerCase()} with power distributed among ${data.politicalStructure === 'Direct democracy' ? 'citizen assemblies and digital platforms' : 'elected representatives and appointed officials'}. The following institutions shall be established: ${getInstitutionalRecommendations(data).join(', ')}. ${data.technologyLevel >= 7 ? 'Advanced technology shall be used to enhance democratic participation and government efficiency.' : ''}`
-        },
-        {
-          title: 'Economic System and Resource Management',
-          content: `The economic system shall be based on ${getActualEconomicSystem(data)} principles, ensuring ${data.economicModel === 'Free market' ? 'free enterprise with appropriate regulation' : data.economicModel === 'Barter' ? 'equitable resource distribution and sustainability' : 'optimal resource allocation for all citizens'}. Economic stabilization measures include: ${getStabilizationMeasures(data).join('; ')}.${economicClause}`
-        },
-        {
-          title: 'Education, Healthcare, and Social Development',
-          content: `Education shall be ${data.educationSystem.includes('Universal public') ? 'universally accessible and publicly funded' : 'available through diverse pathways'} to ensure all citizens can reach their full potential. ${data.educationSystem.includes('Virtual-remote') ? 'Digital learning platforms shall be used to enhance educational access.' : ''} Healthcare access shall be guaranteed through ${data.healthcare.includes('Universal access') ? 'universal coverage' : 'comprehensive public-private partnerships'}.`
-        },
-        {
-          title: 'Justice and Legal Framework',
-          content: `Justice shall be administered fairly and transparently. ${data.legalFramework.includes('Trial by peers') ? 'Citizens accused of crimes have the right to trial by jury.' : ''} ${data.legalFramework.includes('Sentencing by peers') ? 'Sentencing shall involve peer participation where appropriate.' : ''} ${data.legalFramework.includes('Ability to appeal police actions') ? 'Citizens may challenge police actions through independent review processes.' : ''} ${data.legalFramework.includes('Punishment for graft') ? 'Corruption and graft shall be severely punished.' : ''} ${data.legalFramework.includes('Capital punishment is available') ? 'Capital punishment may be imposed for the most serious crimes.' : 'Capital punishment is prohibited.'} ${data.legalFramework.includes('Executive power as final authority') ? 'Executive authority serves as the final arbiter in matters of national security.' : ''}`
-         },
-         {
-           title: 'Environmental Protection and Sustainability',
-           content: `The nation commits to environmental protection and sustainable development. ${data.environmentalChallenges.length > 0 ? 'Special attention shall be given to addressing ' + data.environmentalChallenges.join(', ') + '.' : ''} Future generations have the right to a healthy environment. An Environmental Security Council shall oversee long-term sustainability planning.${environmentalClause}`
-        },
-        {
-          title: 'Amendment Process and Legal Framework',
-          content: `This Constitution may be amended by a ${data.politicalStructure === 'Direct democracy' ? 'two-thirds majority in a national referendum' : 'three-fourths majority of the Legislative Assembly followed by ratification in regional assemblies'}. Laws shall be enacted by the Legislative Assembly with review by the Constitutional Court. ${data.legalFramework.includes('Ability to lobby lawmakers directly') ? 'Citizens have the right to petition and lobby their representatives directly.' : ''} Emergency powers may be invoked only during declared national emergencies with automatic sunset clauses and judicial oversight. ${data.legalFramework.includes('Eligibility for holding elected roles is based upon more than age') ? 'Eligibility for elected office requires additional qualifications beyond minimum age.' : 'Elected office eligibility is based primarily on age and citizenship requirements.'}`
-        }
-      ],
-      adoptionMechanism: data.politicalStructure === 'Direct democracy' 
-        ? 'This Constitution shall be adopted by direct national referendum requiring a simple majority of eligible voters with minimum 60% turnout.'
-        : 'This Constitution shall be adopted by a Constitutional Convention with ratification by regional assemblies representing at least 75% of the population.',
-      amendmentProcess: data.politicalStructure === 'Direct democracy'
-        ? 'Amendments require proposal by 100,000 citizens or the Legislative Assembly, followed by national referendum with two-thirds majority approval.'
-        : 'Amendments require proposal by one-third of Legislative Assembly members, passage by three-fourths majority, and ratification by three-fourths of regional assemblies.',
-      lawmakingProcess: `Laws are proposed by Legislative Assembly members or citizen initiative (${data.politicalStructure === 'Direct democracy' ? '50,000 signatures' : 'through representatives'}), debated in committee, voted by simple majority, reviewed by Constitutional Court for constitutionality, and signed by the Executive Council. Emergency legislation may bypass normal procedures with automatic review within 90 days.`,
-      signatureBlock: data.politicalStructure === 'Direct democracy'
-        ? ['Chief Citizen Advocate', 'Speaker of Citizen Assembly', 'Constitutional Court Chief Justice', 'Regional Representatives Council Chair']
-        : data.politicalStructure === 'Technocracy'
-        ? ['Chief Technical Officer', 'Science Council Chair', 'Constitutional Court Chief Justice', 'Citizens Oversight Committee Chair']
-        : ['President/Prime Minister', 'Legislative Assembly Speaker', 'Constitutional Court Chief Justice', 'Regional Governors Council Chair']
-    };
-  };
-
-  const results = generateResults(assessmentData);
-
-  const downloadConstitution = () => {
-    const content = `CONSTITUTION\n\nPREAMBLE\n${results.constitution.preamble}\n\n${results.constitution.articles.map((article, index) => `ARTICLE ${index + 1}: ${article.title.toUpperCase()}\n${article.content}`).join('\n\n')}\n\nADOPTION MECHANISM\n${results.constitution.adoptionMechanism}\n\nAMENDMENT PROCESS\n${results.constitution.amendmentProcess}\n\nLAWMAKING PROCESS\n${results.constitution.lawmakingProcess}\n\nSIGNATURE BLOCK\n${results.constitution.signatureBlock.map(role => `_________________________\n${role}`).join('\n\n')}`;
     const blob = new Blob([content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'constitution.txt';
+    a.download = `${user.username}-activity-log.txt`;
     a.click();
     URL.revokeObjectURL(url);
   };
 
-  const MetricCard = ({ title, value, icon: Icon, color }: { title: string; value: number; icon: any; color: string }) => (
-    <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className="text-2xl font-bold text-gray-900">{value}/100</p>
+  const handleCancelSubscription = async () => {
+    setCancelling(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error('No active session');
+      }
+
+      // Call Stripe to cancel subscription at period end
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/stripe-cancel-subscription`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          subscription_id: subscription?.subscription_id
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to cancel subscription');
+      }
+
+      setShowCancelConfirm(false);
+      setShowCancelDetails(false);
+      setShowCancelSuccess(true);
+    } catch (error) {
+      console.error('Error cancelling subscription:', error);
+      alert('Failed to cancel subscription. Please try again or contact support.');
+    } finally {
+      setCancelling(false);
+    }
+  };
+
+  const handleDeleteWithConfirm = (nationId: string) => {
+    const nation = savedNations.find(n => n.id === nationId);
+    if (!nation) return;
+    
+    if (window.confirm(`Are you sure you want to delete "${nation.name}"? This action cannot be undone.`)) {
+      onDelete(nationId);
+    }
+  };
+
+  const getPrivacyIcon = (isVisible: boolean, isPublic: boolean = false) => {
+    if (isPublic && isVisible) {
+      return <Eye className="h-4 w-4 text-blue-600" />;
+    } else if (!isPublic && isVisible) {
+      return (
+        <div className="relative">
+          <Eye className="h-4 w-4 text-green-600" />
+          <Crown className="h-2 w-2 text-yellow-500 absolute -top-1 -right-1" />
         </div>
-        <Icon className={`h-8 w-8 ${color}`} />
-      </div>
-      <div className="mt-4 bg-gray-200 rounded-full h-2">
-        <div
-          className={`h-2 rounded-full ${color.replace('text-', 'bg-')}`}
-          style={{ width: `${value}%` }}
-        />
-      </div>
-    </div>
-  );
+      );
+    }
+    return <Lock className="h-4 w-4 text-gray-400" />;
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={onBack}
-                className="flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors"
-              >
-                <ChevronLeft className="h-5 w-5" />
-                <span>Back</span>
-              </button>
-              <h1 className="text-xl font-bold text-gray-900">Nation Analysis Results</h1>
-            </div>
-            <div className="flex items-center space-x-3">
-              <button
-                onClick={() => setShowPolicyEditor(true)}
-                className="flex items-center space-x-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors"
-              >
-                <Edit3 className="h-4 w-4" />
-                <span>Customize Policies</span>
-              </button>
-              <button
-                onClick={downloadConstitution}
-                className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
-              >
-                <Download className="h-4 w-4" />
-                <span>Download Constitution</span>
-              </button>
-              <button
-                onClick={() => onSaveNation('My Nation')}
-                className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
-              >
-                {user ? <Save className="h-4 w-4" /> : <LogIn className="h-4 w-4" />}
-                <span>{user ? (isExistingNation ? 'Update Nation' : 'Save Nation') : 'Login to Save'}</span>
-              </button>
-              <button
-                onClick={onStartNew}
-                className="flex items-center space-x-2 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
-              >
-                <RefreshCw className="h-4 w-4" />
-                <span>New Analysis</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Navigation Tabs */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <nav className="flex space-x-6">
-            {[
-              { id: 'overview', label: 'Overview', icon: BarChart3 },
-              { id: 'analysis', label: 'Detailed Analysis', icon: TrendingUp },
-              { id: 'constitution', label: 'Constitution', icon: Shield }
-            ].map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`flex items-center space-x-2 py-3 px-2 border-b-2 font-semibold text-xs transition-colors ${
-                  activeTab === tab.id
-                    ? 'border-blue-600 text-blue-700 bg-blue-50'
-                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-400 hover:bg-gray-50'
-                }`}
-              >
-                <tab.icon className="h-3.5 w-3.5" />
-                <span>{tab.label}</span>
-              </button>
-            ))}
-          </nav>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {activeTab === 'overview' && (
-          <div className="space-y-8">
-            {/* Metrics Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <MetricCard
-                title="Resource Efficiency"
-                value={results.metrics.resourceEfficiency}
-                icon={BarChart3}
-                color="text-blue-600"
-              />
-              <MetricCard
-                title="Rights Protection"
-                value={results.metrics.rightsProtection}
-                icon={Shield}
-                color="text-green-600"
-              />
-              <MetricCard
-                title="Adaptability"
-                value={results.metrics.adaptability}
-                icon={TrendingUp}
-                color="text-purple-600"
-              />
-              <MetricCard
-                title="Social Cohesion"
-                value={results.metrics.socialCohesion}
-                icon={PieChart}
-                color="text-orange-600"
-              />
-              <MetricCard
-                title="Economic Growth"
-                value={results.metrics.economicGrowth}
-                icon={TrendingUp}
-                color="text-indigo-600"
-              />
-              <MetricCard
-                title="Sustainability"
-                value={results.metrics.sustainability}
-                icon={BarChart3}
-                color="text-green-600"
-              />
-            </div>
-
-            {/* 4-Quadrant Chart */}
-            <QuadrantChart metrics={results.metrics} />
-
-            {/* Call to Action for Policy Customization */}
-            <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-6 border border-purple-200">
-              <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-gray-50 py-8 px-4">
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="bg-white rounded-2xl shadow-xl mb-8">
+          <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-8 py-6 rounded-t-2xl">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center">
+                  <User className="h-8 w-8 text-blue-600" />
+                </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Customize Your Nation's Policies</h3>
-                  <p className="text-gray-600">
-                    Fine-tune your nation's ethical, economic, judicial, and environmental policies to see how they impact your governance analysis.
+                  <div className="flex items-center space-x-3">
+                    <h1 className="text-2xl font-bold text-white">{user.username}</h1>
+                    <button
+                      onClick={isPremium ? undefined : onShowSubscriptionPlans}
+                      className={`flex items-center space-x-1 px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                        isPremium 
+                          ? 'bg-yellow-500 text-yellow-900 cursor-default' 
+                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300 cursor-pointer'
+                      }`}
+                    >
+                      <Crown className="h-3 w-3" />
+                      <span>{isPremium ? 'Premium' : 'Freemium'}</span>
+                    </button>
+                  </div>
+                  <p className="text-blue-100 text-sm">
+                    Member since {new Date(user.createdAt).toLocaleDateString()}
                   </p>
                 </div>
-                <button
-                  onClick={() => setShowPolicyEditor(true)}
-                  className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
-                >
-                  Customize Policies
-                </button>
               </div>
-            </div>
-
-            {/* State of Your Nation */}
-            <div className="bg-gradient-to-r from-gray-900 to-blue-900 rounded-lg p-8 shadow-lg border-2 border-blue-300">
-              <h3 className="text-2xl font-bold text-white mb-6 text-center">State of Your Nation</h3>
-              <div className="grid md:grid-cols-3 gap-6">
-                {/* Governance Structure */}
-                <div className="bg-blue-600 rounded-lg p-6 text-white">
-                  <h4 className="text-lg font-bold mb-3 flex items-center">
-                    <Shield className="h-5 w-5 mr-2" />
-                    Governance Structure
-                  </h4>
-                  <p className="text-blue-100">{results.recommendations.governanceStructure}</p>
-                </div>
-                
-                {/* Economic Framework */}
-                <div className="bg-green-600 rounded-lg p-6 text-white">
-                  <h4 className="text-lg font-bold mb-3 flex items-center">
-                    <BarChart3 className="h-5 w-5 mr-2" />
-                    Economic Framework
-                  </h4>
-                  <p className="text-green-100">{results.recommendations.economicFramework}</p>
-                </div>
-                
-                {/* Key Institutions */}
-                <div className="bg-purple-600 rounded-lg p-6 text-white">
-                  <h4 className="text-lg font-bold mb-3 flex items-center">
-                    <Shield className="h-5 w-5 mr-2" />
-                    Key Institutions
-                  </h4>
-                  <ul className="text-purple-100 space-y-1">
-                    {results.recommendations.keyInstitutions.map(institution => (
-                      <li key={institution} className="flex items-start">
-                        <span className="w-1.5 h-1.5 bg-purple-200 rounded-full mt-2 mr-2 flex-shrink-0"></span>
-                        <span className="text-sm">{institution}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </div>
-            
-            {/* Next Button */}
-            <div className="flex justify-center">
               <button
-                onClick={() => setActiveTab('analysis')}
-                className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors shadow-lg"
+                onClick={onBack}
+                className="text-white hover:text-blue-200 transition-colors"
               >
-                <span>View Detailed Analysis</span>
-                <ChevronLeft className="h-5 w-5 rotate-180" />
+                <X className="h-6 w-6" />
               </button>
             </div>
           </div>
-        )}
 
-        {activeTab === 'analysis' && (
-          <div className="space-y-8">
-            {/* Political Analysis */}
+          {/* Navigation Tabs */}
+          <div className="px-8 py-4 border-b border-gray-200">
+            <nav className="flex space-x-6">
+              {[
+                { id: 'overview', label: 'Overview', icon: User },
+                { id: 'nations', label: 'My Nations', icon: Globe },
+                { id: 'settings', label: 'Settings', icon: Settings }
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={`flex items-center space-x-2 py-2 px-4 rounded-lg font-medium text-sm transition-colors ${
+                    activeTab === tab.id
+                      ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                      : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+                  }`}
+                >
+                  <tab.icon className="h-4 w-4" />
+                  <span>{tab.label}</span>
+                </button>
+              ))}
+            </nav>
+          </div>
+        </div>
+
+        {/* Content */}
+        {activeTab === 'overview' && (
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* Account Summary */}
             <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Political System Analysis</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
+                <Shield className="h-5 w-5 text-blue-600" />
+                <span>Account Information</span>
+              </h3>
+              
               <div className="space-y-4">
-                <div>
-                  <h4 className="font-bold text-gray-800">Actual Governance Type</h4>
-                  <p className="text-gray-600">{results.politicalAnalysis.actualGovernanceType}</p>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-gray-700">Username:</span>
+                    <span className="font-medium">{user.username}</span>
+                  </div>
+                  <Eye className="h-4 w-4 text-blue-600" title="Always public" />
                 </div>
-                <div>
-                  <h4 className="font-bold text-gray-800">Evolution Prediction</h4>
-                  <ul className="text-gray-600 list-disc list-inside space-y-1">
-                    {results.politicalAnalysis.evolutionPrediction.map((phase, index) => (
-                      <li key={index}>{phase}</li>
-                    ))}
-                  </ul>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-gray-700">Email:</span>
+                    <span className="font-medium">
+                      {privacySettings.email ? user.email : '••••••••@••••••.com'}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => handlePrivacyToggle('email')}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    {getPrivacyIcon(privacySettings.email)}
+                  </button>
                 </div>
-                <div>
-                  <h4 className="font-medium text-red-700">Most Likely Causes of Nation Failure</h4>
-                  <ul className="text-gray-600 list-disc list-inside">
-                    {results.politicalAnalysis.failureCauses.map(cause => (
-                      <li key={cause}>{cause}</li>
-                    ))}
-                  </ul>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-gray-700">Member Since:</span>
+                    <span className="font-medium">
+                      {privacySettings.createdAt ? new Date(user.createdAt).toLocaleDateString() : '••/••/••••'}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => handlePrivacyToggle('createdAt')}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    {getPrivacyIcon(privacySettings.createdAt)}
+                  </button>
                 </div>
-                <div>
-                  <h4 className="font-medium text-green-700">Nation Growth Pathways</h4>
-                  <ul className="text-gray-600 list-disc list-inside">
-                    {results.politicalAnalysis.growthPathways.map(pathway => (
-                      <li key={pathway}>{pathway}</li>
-                    ))}
-                  </ul>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-gray-700">Subscription:</span>
+                    <span className="font-medium">
+                      {privacySettings.subscriptionStatus ? (isPremium ? 'Premium' : 'Freemium') : '••••••••'}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => handlePrivacyToggle('subscriptionStatus')}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    {getPrivacyIcon(privacySettings.subscriptionStatus)}
+                  </button>
                 </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-gray-700">Origin:</span>
+                    <span className="font-medium">
+                      {privacySettings.origin ? `${user.city}, ${user.country}` : '••••••, ••••••'}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => handlePrivacyToggle('origin')}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    {getPrivacyIcon(privacySettings.origin)}
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-gray-700">Age Range:</span>
+                    <span className="font-medium">
+                      {privacySettings.ageRange ? getAgeRange(user.age) : '•• - •• years old'}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => handlePrivacyToggle('ageRange')}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    {getPrivacyIcon(privacySettings.ageRange)}
+                  </button>
+                </div>
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-gray-200">
+                <p className="text-xs text-gray-500 flex items-center space-x-1">
+                  <Lock className="h-3 w-3" />
+                  <span>All information is private by default. Click icons to make visible to other users.</span>
+                </p>
               </div>
             </div>
 
-            {/* Economic Analysis */}
-            <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Economic System Analysis</h3>
-              <div className="space-y-4">
-                <div>
-                  <h4 className="font-bold text-gray-800">Actual Economic System</h4>
-                  <p className="text-gray-600">{results.economicAnalysis.actualEconomicSystem}</p>
-                </div>
-                <div>
-                  <h4 className="font-bold text-gray-800">System Evolution</h4>
-                  <ul className="text-gray-600 list-disc list-inside space-y-1">
-                    {results.economicAnalysis.systemEvolution.map((phase, index) => (
-                      <li key={index}>{phase}</li>
-                    ))}
-                  </ul>
-                </div>
-                <div>
-                  <h4 className="font-medium text-red-700">Economic System Failure Risks</h4>
-                  <ul className="text-gray-600 list-disc list-inside">
-                    {results.economicAnalysis.failureRisks.map(risk => (
-                      <li key={risk}>{risk}</li>
-                    ))}
-                  </ul>
-                </div>
-                <div>
-                  <h4 className="font-medium text-green-700">GDP Growth Pathways</h4>
-                  <ul className="text-gray-600 list-disc list-inside">
-                    {results.economicAnalysis.gdpGrowthPathways.map(pathway => (
-                      <li key={pathway}>{pathway}</li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            {/* Top Priorities Section */}
-            <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Stabilization Measures</h3>
-              <div className="space-y-4">
-                <div>
-                  <h4 className="font-medium text-blue-700">Stabilization Measures</h4>
-                  <ul className="text-gray-600 list-disc list-inside">
-                    {results.economicAnalysis.stabilizationMeasures.map(measure => (
-                      <li key={measure}>{measure}</li>
-                    ))}
-                  </ul>
-                </div>
-                <div>
-                  <h4 className="font-bold text-red-700">Top Priorities</h4>
-                  <div className="space-y-3 mt-2">
-                    {getTopPriorities(assessmentData).map((priority, index) => (
-                      <div key={index} className="bg-red-50 border-l-4 border-red-500 p-3">
-                        <p className="text-red-800 font-medium text-sm leading-relaxed">{priority}</p>
+            {/* Nations Summary */}
+            <div className="space-y-6">
+              {/* Shared Nations */}
+              <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Shared Nations</h3>
+                {sharedNations.length > 0 ? (
+                  <div className="space-y-2">
+                    {sharedNations.map(nation => (
+                      <div key={nation.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                        <span className="font-medium text-gray-900">{nation.name}</span>
+                        <Eye className="h-4 w-4 text-blue-600" />
                       </div>
                     ))}
                   </div>
-                </div>
+                ) : (
+                  <p className="text-gray-500 text-sm">No nations shared publicly yet.</p>
+                )}
               </div>
-            </div>
 
-            {/* Historical Comparisons */}
-            <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Historical Comparisons</h3>
-              <div className="space-y-2">
-                {results.comparisons.historicalSimilar.map(comparison => (
-                  <div key={comparison} className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-                    <span className="text-gray-700">{comparison}</span>
+              {/* Leaderboard Entries */}
+              <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
+                  <Trophy className="h-5 w-5 text-yellow-600" />
+                  <span>Leaderboard</span>
+                </h3>
+                {leaderboardEntries.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-gray-200">
+                          <th className="text-left py-2">Nation</th>
+                          <th className="text-left py-2">Category</th>
+                          <th className="text-left py-2">Rank</th>
+                          <th className="text-left py-2">Duration</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {leaderboardEntries.map(entry => (
+                          <tr key={entry.nationId} className="border-b border-gray-100">
+                            <td className="py-2 font-medium">{entry.nationName}</td>
+                            <td className="py-2">{entry.category}</td>
+                            <td className="py-2">#{entry.rank}</td>
+                            <td className="py-2">{entry.duration}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
-                ))}
+                ) : (
+                  <p className="text-gray-500 text-sm">No nations on leaderboard yet. Make a nation public to compete!</p>
+                )}
               </div>
-            </div>
-
-            {/* Strengths & Weaknesses */}
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-                <h3 className="text-lg font-semibold text-green-700 mb-4">Strengths</h3>
-                <div className="space-y-2">
-                  {results.comparisons.strengthsWeaknesses.strengths.map(strength => (
-                    <div key={strength} className="flex items-center space-x-2">
-                      <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-                      <span className="text-gray-700">{strength}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-                <h3 className="text-lg font-semibold text-red-700 mb-4">Areas for Attention</h3>
-                <div className="space-y-2">
-                  {results.comparisons.strengthsWeaknesses.weaknesses.map(weakness => (
-                    <div key={weakness} className="flex items-center space-x-2">
-                      <div className="w-2 h-2 bg-red-600 rounded-full"></div>
-                      <span className="text-gray-700">{weakness}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-            
-            {/* Next Button */}
-            <div className="flex justify-center">
-              <button
-                onClick={() => setActiveTab('constitution')}
-                className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors shadow-lg"
-              >
-                <span>View Constitution</span>
-                <ChevronLeft className="h-5 w-5 rotate-180" />
-              </button>
             </div>
           </div>
         )}
 
-        {activeTab === 'constitution' && (
+        {activeTab === 'nations' && (
+          <div className="bg-white rounded-lg p-8 shadow-sm border border-gray-200">
+            <SavedNations
+              nations={savedNations}
+              onLoad={onLoad}
+              onDelete={handleDeleteWithConfirm}
+              onEdit={onEdit}
+            />
+          </div>
+        )}
+
+        {activeTab === 'settings' && (
           <div className="space-y-6">
-            <div className="bg-white rounded-lg p-8 shadow-sm border border-gray-200">
-              <h3 className="text-2xl font-bold text-gray-900 mb-6">Constitution</h3>
+            {/* Privacy Settings */}
+            <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
+                <Shield className="h-5 w-5 text-green-600" />
+                <span>Privacy Settings</span>
+              </h3>
               
-              <div className="space-y-6">
-                <div>
-                  <h4 className="text-lg font-semibold text-gray-800 mb-3">Preamble</h4>
-                  <p className="text-gray-700 leading-relaxed">{results.constitution.preamble}</p>
-                </div>
-                
-                {results.constitution.articles.map((article, index) => (
-                  <div key={index} className="border-t border-gray-200 pt-6">
-                    <h4 className="text-lg font-semibold text-gray-800 mb-3">
-                      Article {index + 1}: {article.title}
-                    </h4>
-                    <p className="text-gray-700 leading-relaxed">{article.content}</p>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <div className="font-medium text-gray-900">Email Address</div>
+                    <div className="text-sm text-gray-500">Show your email to other logged-in users</div>
                   </div>
-                ))}
-
-                <div className="border-t border-gray-200 pt-6">
-                  <h4 className="text-lg font-semibold text-gray-800 mb-3">Adoption Mechanism</h4>
-                  <p className="text-gray-700 leading-relaxed">{results.constitution.adoptionMechanism}</p>
+                  <button
+                    onClick={() => handlePrivacyToggle('email')}
+                    className={`p-2 rounded-lg transition-colors ${
+                      privacySettings.email ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-400'
+                    }`}
+                  >
+                    {privacySettings.email ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                  </button>
                 </div>
 
-                <div className="border-t border-gray-200 pt-6">
-                  <h4 className="text-lg font-semibold text-gray-800 mb-3">Amendment Process</h4>
-                  <p className="text-gray-700 leading-relaxed">{results.constitution.amendmentProcess}</p>
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <div className="font-medium text-gray-900">Join Date</div>
+                    <div className="text-sm text-gray-500">Show when you joined Nationbuilder</div>
+                  </div>
+                  <button
+                    onClick={() => handlePrivacyToggle('createdAt')}
+                    className={`p-2 rounded-lg transition-colors ${
+                      privacySettings.createdAt ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-400'
+                    }`}
+                  >
+                    {privacySettings.createdAt ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                  </button>
                 </div>
 
-                <div className="border-t border-gray-200 pt-6">
-                  <h4 className="text-lg font-semibold text-gray-800 mb-3">Lawmaking Process</h4>
-                  <p className="text-gray-700 leading-relaxed">{results.constitution.lawmakingProcess}</p>
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <div className="font-medium text-gray-900">Subscription Status</div>
+                    <div className="text-sm text-gray-500">Show if you're a premium member</div>
+                  </div>
+                  <button
+                    onClick={() => handlePrivacyToggle('subscriptionStatus')}
+                    className={`p-2 rounded-lg transition-colors ${
+                      privacySettings.subscriptionStatus ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-400'
+                    }`}
+                  >
+                    {privacySettings.subscriptionStatus ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                  </button>
                 </div>
 
-                <div className="border-t border-gray-200 pt-6">
-                  <h4 className="text-lg font-semibold text-gray-800 mb-3">Signature Block</h4>
-                  <div className="grid grid-cols-2 gap-8 mt-8">
-                    {results.constitution.signatureBlock.map(role => (
-                      <div key={role} className="text-center">
-                        <div className="border-b border-gray-400 mb-2 pb-8"></div>
-                        <p className="text-sm text-gray-600">{role}</p>
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <div className="font-medium text-gray-900">Origin</div>
+                    <div className="text-sm text-gray-500">Show your city and country to other logged-in users</div>
+                  </div>
+                  <button
+                    onClick={() => handlePrivacyToggle('origin')}
+                    className={`p-2 rounded-lg transition-colors ${
+                      privacySettings.origin ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-400'
+                    }`}
+                  >
+                    {privacySettings.origin ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <div className="font-medium text-gray-900">Age Range</div>
+                    <div className="text-sm text-gray-500">Show your age range to other logged-in users only (never public)</div>
+                  </div>
+                  <button
+                    onClick={() => handlePrivacyToggle('ageRange')}
+                    className={`p-2 rounded-lg transition-colors ${
+                      privacySettings.ageRange ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-400'
+                    }`}
+                  >
+                    {privacySettings.ageRange ? (
+                      <div className="relative">
+                        <Unlock className="h-4 w-4" />
+                        <Crown className="h-2 w-2 text-yellow-500 absolute -top-1 -right-1" />
                       </div>
-                    ))}
+                    ) : (
+                      <Lock className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-start space-x-2">
+                  <Shield className="h-4 w-4 text-blue-600 mt-0.5" />
+                  <div className="text-sm text-blue-800">
+                    <p className="font-medium">Privacy by Default</p>
+                    <p>Your username and public nations are always visible. All other information is private unless you choose to share it. Age range is never shown publicly, only to other logged-in users.</p>
                   </div>
                 </div>
               </div>
+            </div>
+
+            {/* Account Actions */}
+            <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Account Actions</h3>
               
-              <div className="mt-8 pt-6 border-t border-gray-200">
+              <div className="space-y-4">
                 <button
-                  onClick={downloadConstitution}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+                  onClick={downloadActivityLog}
+                  className="flex items-center space-x-2 w-full p-3 text-left bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
                 >
-                  Download Full Constitution
+                  <Download className="h-4 w-4 text-gray-600" />
+                  <div>
+                    <div className="font-medium text-gray-900">Download Activity Log</div>
+                    <div className="text-sm text-gray-500">Get a copy of your account activity and data</div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => setShow2FASetup(true)}
+                  className="flex items-center space-x-2 w-full p-3 text-left bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <Shield className="h-4 w-4 text-green-600" />
+                  <div>
+                    <div className="font-medium text-gray-900">Two-Factor Authentication</div>
+                    <div className="text-sm text-gray-500">Add an extra layer of security to your account</div>
+                  </div>
+                </button>
+
+                {isPremium && (
+                  <button
+                    onClick={() => setShowCancelConfirm(true)}
+                    className="flex items-center space-x-2 w-full p-3 text-left bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+                  >
+                    <CreditCard className="h-4 w-4 text-red-600" />
+                    <div>
+                      <div className="font-medium text-red-900">Cancel Subscription</div>
+                      <div className="text-sm text-red-600">End your premium subscription</div>
+                    </div>
+                  </button>
+                )}
+
+                {isPremium && (
+                  <button
+                    onClick={() => setShowCancelDetails(true)}
+                    className="flex items-center space-x-2 w-full p-3 text-left bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+                  >
+                    <CreditCard className="h-4 w-4 text-red-600" />
+                    <div>
+                      <div className="font-medium text-red-900">Cancel Subscription</div>
+                      <div className="text-sm text-red-600">End your premium subscription</div>
+                    </div>
+                  </button>
+                )}
+
+                <button
+                  onClick={onLogout}
+                  className="flex items-center space-x-2 w-full p-3 text-left bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <LogOut className="h-4 w-4 text-gray-600" />
+                  <div>
+                    <div className="font-medium text-gray-900">Log Out</div>
+                    <div className="text-sm text-gray-500">Sign out of your account</div>
+                  </div>
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Cancel Subscription Modal */}
+        {showCancelDetails && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+              <div className="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4 flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <AlertTriangle className="h-6 w-6 text-white" />
+                  <h2 className="text-xl font-bold text-white">Subscription Cancellation Details</h2>
+                </div>
+                <button
+                  onClick={() => setShowCancelDetails(false)}
+                  className="text-white hover:text-red-200 transition-colors"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+
+              <div className="p-6">
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">What happens when you cancel?</h3>
+                  
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                    <div className="flex items-start space-x-2">
+                      <Calendar className="h-5 w-5 text-blue-600 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-blue-900">Your subscription will remain active until:</p>
+                        <p className="text-blue-800 text-lg font-semibold">
+                          {subscriptionEndDate || 'End of current billing period'}
+                        </p>
+                        <p className="text-blue-700 text-sm mt-1">
+                          You'll continue to have full access to all premium features until this date.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                    <h4 className="font-semibold text-red-900 mb-2">After cancellation, you will lose:</h4>
+                    <ul className="space-y-1 text-red-800 text-sm">
+                      <li>• Ability to save more than 5 nations (current: {savedNations.length}/30)</li>
+                      <li>• Access to full leaderboards (top 30 in each category)</li>
+                      <li>• Early access to new features</li>
+                      <li>• Premium support priority</li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                    <h4 className="font-semibold text-green-900 mb-2">What you'll keep:</h4>
+                    <ul className="space-y-1 text-green-800 text-sm">
+                      <li>• All your currently saved nations (up to 5 will remain accessible)</li>
+                      <li>• Basic leaderboard access (top 5 in each category)</li>
+                      <li>• Full nation building and analysis features</li>
+                      <li>• Account data and privacy settings</li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                    <div className="flex items-start space-x-2">
+                      <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-yellow-900">Important Notes:</p>
+                        <ul className="text-yellow-800 text-sm mt-1 space-y-1">
+                          <li>• No refunds are available for pre-paid subscription periods</li>
+                          <li>• If you have more than 5 saved nations, you'll need to choose which 5 to keep</li>
+                          <li>• You can reactivate your subscription at any time</li>
+                          <li>• Cancellation takes effect at the end of your current billing cycle</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  {savedNations.length > 5 && (
+                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
+                      <div className="flex items-start space-x-2">
+                        <AlertTriangle className="h-5 w-5 text-orange-600 mt-0.5" />
+                        <div>
+                          <p className="font-medium text-orange-900">Action Required:</p>
+                          <p className="text-orange-800 text-sm mt-1">
+                            You currently have {savedNations.length} saved nations. After cancellation, 
+                            you'll need to choose which 5 nations to keep. The system will automatically 
+                            keep your 5 most recently updated nations unless you specify otherwise.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Undeployed Help Desk Section - Hidden but ready for future deployment */}
+                <div className="hidden">
+                  <div className="border-t border-gray-200 pt-4 mb-6">
+                    <h4 className="font-medium text-gray-900 mb-3">Need Help?</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center space-x-2">
+                        <HelpCircle className="h-4 w-4 text-gray-500" />
+                        <a href="#" className="text-blue-600 hover:text-blue-700 flex items-center space-x-1">
+                          <span>Contact Help Desk</span>
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Shield className="h-4 w-4 text-gray-500" />
+                        <a href="#" className="text-blue-600 hover:text-blue-700 flex items-center space-x-1">
+                          <span>Terms of Service</span>
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Lock className="h-4 w-4 text-gray-500" />
+                        <a href="#" className="text-blue-600 hover:text-blue-700 flex items-center space-x-1">
+                          <span>Privacy Policy</span>
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => setShowCancelDetails(false)}
+                    className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-3 rounded-lg transition-colors font-medium"
+                  >
+                    Keep My Subscription
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowCancelDetails(false);
+                      setShowCancelConfirm(true);
+                    }}
+                    className="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-lg transition-colors font-medium"
+                  >
+                    Proceed to Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Final Cancellation Confirmation Modal */}
+        {showCancelConfirm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
+              <div className="text-center mb-6">
+                <AlertTriangle className="h-12 w-12 text-red-600 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">Final Confirmation</h3>
+                <p className="text-gray-600">
+                  Are you absolutely sure you want to cancel your Nationleader subscription?
+                </p>
+              </div>
+
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                <p className="text-red-800 text-sm font-medium mb-2">
+                  This action will:
+                </p>
+                <ul className="text-red-700 text-sm space-y-1">
+                  <li>• Cancel your subscription at the end of the current billing period ({subscriptionEndDate})</li>
+                  <li>• Remove access to premium features after that date</li>
+                  <li>• Limit you to 5 saved nations instead of 30</li>
+                  <li>• Cannot be undone (though you can resubscribe later)</li>
+                </ul>
+              </div>
+
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => setShowCancelConfirm(false)}
+                  className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-3 rounded-lg transition-colors font-medium"
+                >
+                  No, Keep My Subscription
+                </button>
+                <button
+                  onClick={handleCancelSubscription}
+                  disabled={cancelling}
+                  className="flex-1 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white px-4 py-3 rounded-lg transition-colors font-medium"
+                >
+                  {cancelling ? 'Processing...' : 'Yes, Cancel Subscription'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Cancellation Success Modal */}
+        {showCancelSuccess && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CreditCard className="h-8 w-8 text-green-600" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">Subscription Cancelled</h3>
+                <p className="text-gray-600">
+                  Your subscription has been successfully cancelled and will not renew.
+                </p>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <div className="text-center">
+                  <p className="font-medium text-blue-900 mb-1">Premium access continues until:</p>
+                  <p className="text-blue-800 text-lg font-semibold">
+                    {subscriptionEndDate}
+                  </p>
+                  <p className="text-blue-700 text-sm mt-2">
+                    You'll receive an email confirmation with all the details.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setShowCancelSuccess(false)}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg transition-colors font-medium"
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* 2FA Setup Modal */}
+        {show2FASetup && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
+              <div className="text-center mb-6">
+                <Shield className="h-12 w-12 text-green-600 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">Two-Factor Authentication</h3>
+                <p className="text-gray-600">
+                  Two-factor authentication is coming soon! This feature will add an extra layer of security to your account.
+                </p>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <p className="text-blue-800 text-sm">
+                  We're working on implementing 2FA with authenticator app support. 
+                  You'll be notified when this feature becomes available.
+                </p>
+              </div>
+
+              <button
+                onClick={() => setShow2FASetup(false)}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+              >
+                Got it
+              </button>
             </div>
           </div>
         )}
       </div>
-
-      {/* Policy Editor Modal */}
-      {showPolicyEditor && (
-        <PolicyEditor
-          onSave={(policies) => {
-            onPolicyUpdate(policies);
-            setShowPolicyEditor(false);
-          }}
-          onClose={() => setShowPolicyEditor(false)}
-          currentPolicies={customPolicies}
-        />
-      )}
     </div>
   );
 }
