@@ -276,11 +276,210 @@ export default function ResultsDashboard({
 
   const getHistoricalComparisons = (data: AssessmentData): string[] => {
     const comparisons = [];
-    if (data.politicalStructure === 'Direct democracy') comparisons.push('Ancient Athens (with modern safeguards)');
-    if (data.economicModel === 'Barter') comparisons.push('Scandinavian Social Democracies');
-    if (data.location === 'Space station or space-traveling coommunity') comparisons.push('International Space Station governance');
-    if (Array.isArray(data.socialOrganization) && data.socialOrganization.includes('Merit-based')) comparisons.push('Singapore\'s Technocratic Elements');
-    return comparisons.length > 0 ? comparisons : ['Swiss Federal Democracy', 'Nordic Social Model'];
+    
+    // Check for exact archetype matches first
+    const isUtopianArchetype = data.population === 5800000 && data.territory === 43094 && 
+      data.politicalStructure === 'Representative democracy' && data.economicModel === 'Mixed system' &&
+      data.educationLevel === 9 && data.technologyLevel === 9;
+    
+    const isDystopianArchetype = data.population === 50000 && data.territory === 500000 && 
+      data.politicalStructure === 'Martial law/Anarchic' && data.economicModel === 'Feudal' &&
+      data.educationLevel === 2 && data.technologyLevel === 1;
+    
+    const isMarsArchetype = data.population === 400 && data.territory === 1000 && 
+      data.location === 'Space station or space-traveling coommunity' && data.economicModel === 'Colonialism' &&
+      data.politicalStructure === 'Constitutional monarchy';
+    
+    // Use exact archetype comparisons if assessment wasn't substantially edited
+    if (isUtopianArchetype) {
+      return ['Modern Denmark (2020s)', 'Nordic Social Democracies', 'Scandinavian Welfare States'];
+    }
+    
+    if (isDystopianArchetype) {
+      return ['1600s Siberian Exile Colonies', 'Russian Penal Settlements', 'Harsh Frontier Territories'];
+    }
+    
+    if (isMarsArchetype) {
+      return ['Colonial Australia (1820s-1850s)', 'International Space Station Governance', 'Early Penal Colonies'];
+    }
+    
+    // Expanded historical comparisons library for other cases
+    
+    // Political Structure Comparisons
+    if (data.politicalStructure === 'Direct democracy') {
+      comparisons.push('Ancient Athens (with modern safeguards)', 'Swiss Cantonal Democracy', 'New England Town Meetings');
+    }
+    if (data.politicalStructure === 'Representative democracy') {
+      comparisons.push('United States (1789-present)', 'British Parliamentary System', 'French Third Republic');
+    }
+    if (data.politicalStructure === 'Constitutional monarchy') {
+      comparisons.push('Modern United Kingdom', 'Constitutional Japan (post-1947)', 'Swedish Monarchy');
+    }
+    if (data.politicalStructure === 'Monarchy') {
+      comparisons.push('Absolute France (Louis XIV)', 'Tsarist Russia', 'Imperial China (Qing Dynasty)');
+    }
+    if (data.politicalStructure === 'Fascism') {
+      comparisons.push('Nazi Germany (1933-1945)', 'Fascist Italy (1922-1943)', 'Imperial Japan (1931-1945)');
+    }
+    if (data.politicalStructure === 'Socialism or Mutualism') {
+      comparisons.push('Soviet Union (1922-1991)', 'Cuba (1959-present)', 'Yugoslavia (1945-1992)');
+    }
+    if (data.politicalStructure === 'Theocracy') {
+      comparisons.push('Vatican City State', 'Islamic Republic of Iran', 'Tibet (pre-1950)');
+    }
+    
+    // Economic Model Comparisons
+    if (data.economicModel === 'Free market') {
+      comparisons.push('Gilded Age America (1870s-1900)', 'Hong Kong (1960s-1990s)', 'Laissez-faire Britain (1800s)');
+    }
+    if (data.economicModel === 'Mixed system') {
+      comparisons.push('Post-WWII Western Europe', 'Modern Scandinavian Countries', 'New Deal America (1933-1939)');
+    }
+    if (data.economicModel === 'Regulated market') {
+      comparisons.push('Progressive Era America (1890s-1920s)', 'Social Market Economy Germany', 'Keynesian Britain (1945-1979)');
+    }
+    if (data.economicModel === 'Communistic') {
+      comparisons.push('Soviet Planned Economy', 'Maoist China (1949-1976)', 'Cuban Command Economy');
+    }
+    if (data.economicModel === 'Feudal') {
+      comparisons.push('Medieval Europe (800-1500)', 'Tokugawa Japan (1603-1868)', 'Manorial System England');
+    }
+    if (data.economicModel === 'Barter') {
+      comparisons.push('Pre-Columbian Americas', 'Early Medieval Trade', 'Pacific Island Economies');
+    }
+    if (data.economicModel === 'Dirigisme') {
+      comparisons.push('Gaullist France (1958-1969)', 'South Korean Development (1960s-1980s)', 'Meiji Japan (1868-1912)');
+    }
+    if (data.economicModel === 'Georgism') {
+      comparisons.push('Henry George Movement (1880s)', 'Land Value Tax Experiments', 'Singapore Land Policy');
+    }
+    if (data.economicModel === 'Colonialism') {
+      comparisons.push('British Colonial India', 'Dutch East Indies', 'Spanish Colonial Americas');
+    }
+    if (data.economicModel === 'Corporatism') {
+      comparisons.push('Fascist Italy Economic Model', 'Estado Novo Portugal', 'Salazar Corporate State');
+    }
+    if (data.economicModel === 'Hydraulic despotism') {
+      comparisons.push('Ancient Mesopotamia', 'Imperial China Water Management', 'Inca Empire Agriculture');
+    }
+    if (data.economicModel === 'Distributism') {
+      comparisons.push('Chesterton-Belloc Movement', 'Catholic Social Teaching Economics', 'Cooperative Movements');
+    }
+    if (data.economicModel === 'Potlach') {
+      comparisons.push('Pacific Northwest Indigenous Economies', 'Gift Economy Societies', 'Melanesian Big Man Systems');
+    }
+    if (data.economicModel === 'Social Credit') {
+      comparisons.push('Alberta Social Credit (1935-1971)', 'Douglas Credit Theory', 'New Zealand Social Credit');
+    }
+    if (data.economicModel === 'Anarchy') {
+      comparisons.push('Revolutionary Catalonia (1936-1939)', 'Free Territory Ukraine (1918-1921)', 'Paris Commune (1871)');
+    }
+    
+    // Location-based Comparisons
+    if (data.location === 'Space station or space-traveling coommunity') {
+      comparisons.push('International Space Station Governance', 'Generation Ship Concepts', 'Antarctic Research Stations');
+    }
+    if (data.location === 'Planetary colony') {
+      comparisons.push('Mars Colony Simulations', 'Antarctic Settlements', 'Remote Island Colonies');
+    }
+    if (data.location === 'Underwater') {
+      comparisons.push('Sealab Experiments', 'Submarine Communities', 'Aquarius Reef Base');
+    }
+    if (data.location === 'Virtual/Digital') {
+      comparisons.push('Online Gaming Guilds', 'Digital Nomad Communities', 'Cryptocurrency DAOs');
+    }
+    
+    // Social Organization Comparisons
+    if (Array.isArray(data.socialOrganization)) {
+      if (data.socialOrganization.includes('Merit-based')) {
+        comparisons.push('Imperial Chinese Examination System', 'Singapore Technocratic Model', 'Platonic Republic Ideals');
+      }
+      if (data.socialOrganization.includes('Caste heritage')) {
+        comparisons.push('Traditional Indian Caste System', 'Feudal European Estates', 'Tokugawa Class System');
+      }
+      if (data.socialOrganization.includes('Communalism')) {
+        comparisons.push('Israeli Kibbutz Movement', 'Hutterite Communities', 'Amish Society');
+      }
+      if (data.socialOrganization.includes('Wealth-based')) {
+        comparisons.push('Gilded Age Plutocracy', 'Roman Patrician System', 'Venetian Merchant Republic');
+      }
+      if (data.socialOrganization.includes('Knowledge-based')) {
+        comparisons.push('Ancient Greek Philosopher Kings', 'Medieval Islamic Golden Age', 'Renaissance Italian City-States');
+      }
+      if (data.socialOrganization.includes('Seniority-based')) {
+        comparisons.push('Traditional African Gerontocracy', 'Confucian Age Hierarchy', 'Native American Elder Councils');
+      }
+      if (data.socialOrganization.includes('Ethical acts-based')) {
+        comparisons.push('Quaker Communities', 'Buddhist Sangha', 'Jain Society Structure');
+      }
+    }
+    
+    // Population Size Comparisons
+    if (data.population < 1000) {
+      comparisons.push('Medieval Village Communities', 'Monastic Orders', 'Tribal Societies');
+    } else if (data.population < 100000) {
+      comparisons.push('Ancient City-States', 'Medieval Towns', 'Colonial Settlements');
+    } else if (data.population < 10000000) {
+      comparisons.push('Renaissance Italian States', 'Early Modern Principalities', 'Small Nation-States');
+    } else if (data.population < 100000000) {
+      comparisons.push('19th Century European Nations', 'Modern Medium States', 'Regional Powers');
+    } else {
+      comparisons.push('Great Powers Throughout History', 'Imperial Civilizations', 'Modern Superpowers');
+    }
+    
+    // Technology Level Comparisons
+    if (data.technologyLevel <= 2) {
+      comparisons.push('Stone Age Societies', 'Early Agricultural Civilizations', 'Bronze Age Kingdoms');
+    } else if (data.technologyLevel <= 4) {
+      comparisons.push('Classical Antiquity', 'Medieval Kingdoms', 'Early Modern States');
+    } else if (data.technologyLevel <= 6) {
+      comparisons.push('Industrial Revolution Era', '19th Century Nations', 'Early 20th Century');
+    } else if (data.technologyLevel <= 8) {
+      comparisons.push('Mid-20th Century Developed Nations', 'Post-WWII Reconstruction', 'Cold War Superpowers');
+    } else {
+      comparisons.push('Modern Information Age Societies', '21st Century Tech Leaders', 'Digital Age Nations');
+    }
+    
+    // Environmental Challenge Comparisons
+    if (data.environmentalChallenges.includes('harsh climate')) {
+      comparisons.push('Siberian Settlements', 'Arctic Communities', 'Desert Civilizations');
+    }
+    if (data.environmentalChallenges.includes('Water scarcity')) {
+      comparisons.push('Ancient Mesopotamian Irrigation States', 'Australian Outback Communities', 'Middle Eastern Desert Nations');
+    }
+    if (data.environmentalChallenges.includes('Limited space')) {
+      comparisons.push('Singapore City-State Model', 'Monaco Principality', 'Hong Kong Density Management');
+    }
+    if (data.environmentalChallenges.includes('High radiation')) {
+      comparisons.push('Chernobyl Exclusion Zone', 'Fukushima Recovery Areas', 'Nuclear Test Site Communities');
+    }
+    
+    // Resource Level Comparisons
+    if (data.resources <= 3) {
+      comparisons.push('Resource-Poor Island Nations', 'Desert Survival Communities', 'Post-Disaster Societies');
+    } else if (data.resources >= 8) {
+      comparisons.push('Oil-Rich Gulf States', 'Resource-Abundant Colonial Territories', 'Natural Resource Superpowers');
+    }
+    
+    // Remove duplicates and return top comparisons
+    const uniqueComparisons = [...new Set(comparisons)];
+    
+    // If no specific matches, return general historical examples
+    if (uniqueComparisons.length === 0) {
+      return [
+        'Swiss Federal Democracy',
+        'Nordic Social Model', 
+        'Venetian Republic',
+        'Dutch Golden Age',
+        'Athenian Democracy',
+        'Roman Republic',
+        'British Parliamentary Evolution',
+        'American Federalism'
+      ];
+    }
+    
+    // Return up to 6 most relevant comparisons
+    return uniqueComparisons.slice(0, 6);
   };
 
   const getStrengthsWeaknesses = (data: AssessmentData) => {
