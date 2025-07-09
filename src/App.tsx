@@ -105,7 +105,7 @@ function App() {
   };
 
   const handleAssessmentComplete = (data: AssessmentData) => {
-    console.log('Assessment completed with data:', data);
+    console.log('App.tsx - Assessment completed with data:', data);
     
     // Validate that we have the required data
     if (!data || !data.location || !data.economicModel || !data.politicalStructure || !data.socialOrganization) {
@@ -127,6 +127,7 @@ function App() {
     };
     
     setAssessmentData(sanitizedData);
+    console.log('App.tsx - Setting state to results with sanitized data:', sanitizedData);
     setCurrentState('results');
   };
 

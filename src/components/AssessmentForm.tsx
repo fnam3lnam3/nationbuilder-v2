@@ -75,7 +75,7 @@ export default function AssessmentForm({ onComplete, onBack, initialData }: Asse
       };
       
       console.log('Submitting assessment data:', completeFormData);
-      onComplete(formData);
+      onComplete(completeFormData);
     }
   };
 
