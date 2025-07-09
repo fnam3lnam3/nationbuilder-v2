@@ -1,12 +1,20 @@
 import React, { useState, useEffect } from 'react';
+import { createClient } from '@supabase/supabase-js';
 import LandingPage from './components/LandingPage';
 import AssessmentForm from './components/AssessmentForm';
 import ResultsDashboard from './components/ResultsDashboard';
-import UserAuth from './components/UserAuth';
+import AuthForm from './components/AuthForm';
+import SubscriptionPlans from './components/SubscriptionPlans';
+import SuccessPage from './components/SuccessPage';
 import SavedNations from './components/SavedNations';
 import { AssessmentData, User, SavedNation } from './types';
 
-type AppState = 'landing' | 'assessment' | 'results' | 'saved-nations';
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
+
+type AppState = 'landing' | 'assessment' | 'results' | 'saved-nations' | 'success';
 
 function App() {
   const [currentState, setCurrentState] = useState<AppState>('landing');
@@ -15,29 +23,79 @@ function App() {
   const [user, setUser] = useState<User | null>(null);
   const [savedNations, setSavedNations] = useState<SavedNation[]>([]);
   const [showAuth, setShowAuth] = useState(false);
+  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
+  const [showSubscriptionPlans, setShowSubscriptionPlans] = useState(false);
+  const [subscription, setSubscription] = useState<any>(null);
   const [currentNationId, setCurrentNationId] = useState<string | null>(null);
 
-  // Load saved data from localStorage on app start
+  // Initialize auth state and load saved data
   useEffect(() => {
-    const savedUser = localStorage.getItem('nationbuilder_user');
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          username: session.user.user_metadata?.username || session.user.email?.split('@')[0] || 'User',
+          email: session.user.email || '',
+          city: '',
+          country: '',
+          age: 0,
+          createdAt: new Date(session.user.created_at)
+        });
+        fetchSubscription();
+      }
+    });
+
+    // Listen for auth changes
+    const { data: { subscription: authSubscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'SIGNED_IN' && session?.user) {
+          setUser({
+            id: session.user.id,
+            username: session.user.user_metadata?.username || session.user.email?.split('@')[0] || 'User',
+            email: session.user.email || '',
+            city: '',
+            country: '',
+            age: 0,
+            createdAt: new Date(session.user.created_at)
+          });
+          fetchSubscription();
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null);
+          setSubscription(null);
+          setSavedNations([]);
+        }
+      }
+    );
+
+    // Load saved nations from localStorage for backward compatibility
     const savedNationsData = localStorage.getItem('nationbuilder_nations');
-    
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-    }
-    
     if (savedNationsData) {
       setSavedNations(JSON.parse(savedNationsData));
     }
+
+    return () => authSubscription.unsubscribe();
   }, []);
 
-  // Save user and nations to localStorage whenever they change
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem('nationbuilder_user', JSON.stringify(user));
-    }
-  }, [user]);
+  const fetchSubscription = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('stripe_user_subscriptions')
+        .select('*')
+        .maybeSingle();
 
+      if (error) {
+        console.error('Error fetching subscription:', error);
+        return;
+      }
+
+      setSubscription(data);
+    } catch (error) {
+      console.error('Error fetching subscription:', error);
+    }
+  };
+
+  // Save nations to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem('nationbuilder_nations', JSON.stringify(savedNations));
   }, [savedNations]);
@@ -71,22 +129,21 @@ function App() {
   };
 
   const handleLogin = (userData: User) => {
-    setUser(userData);
     setShowAuth(false);
+    // User state is handled by auth state change listener
   };
 
   const handleLogout = () => {
-    setUser(null);
-    setSavedNations([]);
-    localStorage.removeItem('nationbuilder_user');
-    localStorage.removeItem('nationbuilder_nations');
+    supabase.auth.signOut();
   };
 
   const handleSaveNation = (name: string) => {
     if (!assessmentData || !user) return;
 
-    if (savedNations.length >= 5) {
-      alert('You can only save up to 5 nations per session. Please delete one to save a new nation.');
+    const maxNations = subscription?.subscription_status === 'active' ? 30 : 5;
+    
+    if (savedNations.length >= maxNations) {
+      alert(`You can only save up to ${maxNations} nations${subscription?.subscription_status === 'active' ? ' with your premium subscription' : ' in the free tier'}. Please delete one to save a new nation.`);
       return;
     }
 
@@ -142,6 +199,23 @@ function App() {
     setCustomPolicies(policies);
   };
 
+  const handleShowSubscriptionPlans = () => {
+    setShowSubscriptionPlans(true);
+  };
+
+  const handleSuccessContinue = () => {
+    setCurrentState('landing');
+  };
+
+  // Check URL for success page
+  useEffect(() => {
+    if (window.location.pathname === '/success') {
+      setCurrentState('success');
+      // Clean up URL
+      window.history.replaceState({}, '', '/');
+    }
+  }, []);
+
   switch (currentState) {
     case 'landing':
       return (
@@ -152,11 +226,21 @@ function App() {
             onLogin={() => setShowAuth(true)}
             onLogout={handleLogout}
             onViewSavedNations={handleViewSavedNations}
+            onShowSubscriptionPlans={handleShowSubscriptionPlans}
+            subscription={subscription}
           />
           {showAuth && (
-            <UserAuth
+            <AuthForm
+              mode={authMode}
               onLogin={handleLogin}
+              onToggleMode={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
               onClose={() => setShowAuth(false)}
+            />
+          )}
+          {showSubscriptionPlans && user && (
+            <SubscriptionPlans
+              user={user}
+              onClose={() => setShowSubscriptionPlans(false)}
             />
           )}
         </>
@@ -229,8 +313,21 @@ function App() {
         </div>
       );
     
+    case 'success':
+      return <SuccessPage onContinue={handleSuccessContinue} />;
+    
     default:
-      return <LandingPage onStartAssessment={handleStartAssessment} user={user} onLogin={() => setShowAuth(true)} onLogout={handleLogout} onViewSavedNations={handleViewSavedNations} />;
+      return (
+        <LandingPage 
+          onStartAssessment={handleStartAssessment} 
+          user={user} 
+          onLogin={() => setShowAuth(true)} 
+          onLogout={handleLogout} 
+          onViewSavedNations={handleViewSavedNations}
+          onShowSubscriptionPlans={handleShowSubscriptionPlans}
+          subscription={subscription}
+        />
+      );
   }
 }
 

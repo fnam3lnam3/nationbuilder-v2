@@ -8,9 +8,19 @@ interface LandingPageProps {
   onLogin: () => void;
   onLogout: () => void;
   onViewSavedNations: () => void;
+  onShowSubscriptionPlans: () => void;
+  subscription?: any;
 }
 
-export default function LandingPage({ onStartAssessment, user, onLogin, onLogout, onViewSavedNations }: LandingPageProps) {
+export default function LandingPage({ 
+  onStartAssessment, 
+  user, 
+  onLogin, 
+  onLogout, 
+  onViewSavedNations, 
+  onShowSubscriptionPlans,
+  subscription 
+}: LandingPageProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900">
       {/* Header */}
@@ -24,7 +34,22 @@ export default function LandingPage({ onStartAssessment, user, onLogin, onLogout
           <div className="flex items-center space-x-4">
             {user ? (
               <>
-                <span className="text-blue-100">Welcome, {user.username}</span>
+                <div className="flex items-center space-x-2">
+                  <span className="text-blue-100">Welcome, {user.username}</span>
+                  {subscription?.subscription_status === 'active' && (
+                    <span className="bg-yellow-500 text-yellow-900 px-2 py-1 rounded-full text-xs font-medium">
+                      Premium
+                    </span>
+                  )}
+                </div>
+                {subscription?.subscription_status !== 'active' && (
+                  <button
+                    onClick={onShowSubscriptionPlans}
+                    className="bg-yellow-500 hover:bg-yellow-600 text-yellow-900 px-3 py-1 rounded-full text-sm font-medium transition-colors"
+                  >
+                    Upgrade
+                  </button>
+                )}
                 <button
                   onClick={onViewSavedNations}
                   className="flex items-center space-x-2 text-blue-100 hover:text-white transition-colors"
@@ -76,7 +101,15 @@ export default function LandingPage({ onStartAssessment, user, onLogin, onLogout
           
           {user && (
             <p className="text-blue-200 mt-4 text-sm">
-              Save up to 5 nations and customize policies after analysis
+              Save up to {subscription?.subscription_status === 'active' ? '30' : '5'} nations and customize policies after analysis
+              {subscription?.subscription_status !== 'active' && (
+                <button
+                  onClick={onShowSubscriptionPlans}
+                  className="ml-2 text-yellow-300 hover:text-yellow-100 underline"
+                >
+                  Upgrade for more
+                </button>
+              )}
             </p>
           )}
         </div>
