@@ -44,6 +44,8 @@ interface PrivacySettings {
   createdAt: boolean;
   subscriptionStatus: boolean;
   activityLog: boolean;
+  origin: boolean;
+  ageRange: boolean;
 }
 
 interface LeaderboardEntry {
@@ -70,7 +72,9 @@ export default function UserProfile({
     email: false,
     createdAt: false,
     subscriptionStatus: false,
-    activityLog: false
+    activityLog: false,
+    origin: false,
+    ageRange: false
   });
   const [leaderboardEntries, setLeaderboardEntries] = useState<LeaderboardEntry[]>([]);
   const [sharedNations, setSharedNations] = useState<SavedNation[]>([]);
@@ -79,6 +83,28 @@ export default function UserProfile({
   const [cancelling, setCancelling] = useState(false);
 
   const isPremium = subscription?.subscription_status === 'active';
+
+  // Calculate age range based on user's age
+  const getAgeRange = (age: number): string => {
+    if (age < 18) return 'Minor under 18 years old';
+    if (age <= 23) return '18 - 23 years old';
+    if (age <= 27) return '24 - 27 years old';
+    if (age <= 30) return '28 - 30 years old';
+    if (age <= 35) return '31 - 35 years old';
+    if (age <= 40) return '36 - 40 years old';
+    if (age <= 45) return '41 - 45 years old';
+    if (age <= 50) return '46 - 50 years old';
+    if (age <= 55) return '51 - 55 years old';
+    if (age <= 60) return '56 - 60 years old';
+    if (age <= 65) return '61 - 65 years old';
+    if (age <= 70) return '66 - 70 years old';
+    if (age <= 75) return '71 - 75 years old';
+    if (age <= 80) return '76 - 80 years old';
+    if (age <= 89) return '81 - 89 years old';
+    if (age <= 99) return '90 - 99 years old';
+    if (age <= 110) return '100 - 110 years old';
+    return '111+ years old';
+  };
 
   useEffect(() => {
     loadLeaderboardData();
@@ -114,12 +140,31 @@ export default function UserProfile({
 
   const downloadActivityLog = () => {
     const report = analytics.generateReport();
+    
+    // Create bulleted summary
+    const summary = [
+      `• User: ${user.username} (${privacySettings.email ? user.email : '[HIDDEN]'})`,
+      `• Account Type: ${isPremium ? 'Premium' : 'Freemium'}`,
+      `• Member Since: ${privacySettings.createdAt ? new Date(user.createdAt).toLocaleDateString() : '[HIDDEN]'}`,
+      `• Total Logins: ${report.totalLogins}`,
+      `• Average Session Time: ${report.averageSessionTimeMinutes} minutes`,
+      `• Nations Created: ${report.totalNationsCreated}`,
+      `• Saved Nations: ${savedNations.length}/${isPremium ? 30 : 5}`,
+      `• Public Nations: ${sharedNations.length}`,
+      `• Leaderboard Entries: ${leaderboardEntries.length}`,
+      `• Privacy Settings: ${Object.entries(privacySettings).filter(([_, visible]) => visible).length} fields visible`,
+      `• Last Activity: ${new Date().toLocaleString()}`
+    ];
+    
     const activityData = {
       user: {
         id: user.id,
         username: user.username,
         email: privacySettings.email ? user.email : '[HIDDEN]',
-        createdAt: privacySettings.createdAt ? user.createdAt : '[HIDDEN]'
+        createdAt: privacySettings.createdAt ? user.createdAt : '[HIDDEN]',
+        city: privacySettings.origin ? user.city : '[HIDDEN]',
+        country: privacySettings.origin ? user.country : '[HIDDEN]',
+        ageRange: privacySettings.ageRange ? getAgeRange(user.age) : '[HIDDEN]'
       },
       subscription: {
         status: privacySettings.subscriptionStatus ? (subscription?.subscription_status || 'free') : '[HIDDEN]',
@@ -138,7 +183,19 @@ export default function UserProfile({
       }
     };
 
-    const content = `USER ACTIVITY LOG\n${'='.repeat(50)}\n\n${JSON.stringify(activityData, null, 2)}\n\nGenerated: ${new Date().toLocaleString()}`;
+    const content = `USER ACTIVITY LOG
+${'='.repeat(50)}
+
+SUMMARY
+${summary.join('\n')}
+
+DETAILED DATA
+${'='.repeat(50)}
+${JSON.stringify(activityData, null, 2)}
+
+Generated: ${new Date().toLocaleString()}
+Report Type: User Activity Log with Privacy Controls
+Data Source: Nationbuilder Analytics System`;
     
     const blob = new Blob([content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
@@ -315,6 +372,36 @@ export default function UserProfile({
                     {getPrivacyIcon(privacySettings.subscriptionStatus)}
                   </button>
                 </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-gray-700">Origin:</span>
+                    <span className="font-medium">
+                      {privacySettings.origin ? `${user.city}, ${user.country}` : '••••••, ••••••'}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => handlePrivacyToggle('origin')}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    {getPrivacyIcon(privacySettings.origin)}
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-gray-700">Age Range:</span>
+                    <span className="font-medium">
+                      {privacySettings.ageRange ? getAgeRange(user.age) : '•• - •• years old'}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => handlePrivacyToggle('ageRange')}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    {getPrivacyIcon(privacySettings.ageRange)}
+                  </button>
+                </div>
               </div>
 
               <div className="mt-6 pt-4 border-t border-gray-200">
@@ -446,6 +533,43 @@ export default function UserProfile({
                     {privacySettings.subscriptionStatus ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
                   </button>
                 </div>
+
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <div className="font-medium text-gray-900">Origin</div>
+                    <div className="text-sm text-gray-500">Show your city and country to other logged-in users</div>
+                  </div>
+                  <button
+                    onClick={() => handlePrivacyToggle('origin')}
+                    className={`p-2 rounded-lg transition-colors ${
+                      privacySettings.origin ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-400'
+                    }`}
+                  >
+                    {privacySettings.origin ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <div className="font-medium text-gray-900">Age Range</div>
+                    <div className="text-sm text-gray-500">Show your age range to other logged-in users only (never public)</div>
+                  </div>
+                  <button
+                    onClick={() => handlePrivacyToggle('ageRange')}
+                    className={`p-2 rounded-lg transition-colors ${
+                      privacySettings.ageRange ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-400'
+                    }`}
+                  >
+                    {privacySettings.ageRange ? (
+                      <div className="relative">
+                        <Unlock className="h-4 w-4" />
+                        <Crown className="h-2 w-2 text-yellow-500 absolute -top-1 -right-1" />
+                      </div>
+                    ) : (
+                      <Lock className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
               </div>
 
               <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
@@ -453,7 +577,7 @@ export default function UserProfile({
                   <Shield className="h-4 w-4 text-blue-600 mt-0.5" />
                   <div className="text-sm text-blue-800">
                     <p className="font-medium">Privacy by Default</p>
-                    <p>Your username and public nations are always visible. All other information is private unless you choose to share it.</p>
+                    <p>Your username and public nations are always visible. All other information is private unless you choose to share it. Age range is never shown publicly, only to other logged-in users.</p>
                   </div>
                 </div>
               </div>

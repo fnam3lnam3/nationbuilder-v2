@@ -48,9 +48,9 @@ function App() {
           id: session.user.id,
           username: session.user.user_metadata?.username || session.user.email?.split('@')[0] || 'User',
           email: session.user.email || '',
-          city: '',
-          country: '',
-          age: 0,
+          city: session.user.user_metadata?.city,
+          country: session.user.user_metadata?.country,
+          age: session.user.user_metadata?.age,
           createdAt: new Date(session.user.created_at)
         });
         fetchSubscription();

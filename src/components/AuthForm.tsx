@@ -18,7 +18,10 @@ export default function AuthForm({ mode, onLogin, onToggleMode, onClose }: AuthF
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    username: ''
+    username: '',
+    city: '',
+    country: '',
+    age: ''
   });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -36,7 +39,10 @@ export default function AuthForm({ mode, onLogin, onToggleMode, onClose }: AuthF
           password: formData.password,
           options: {
             data: {
-              username: formData.username
+              username: formData.username,
+              city: formData.city,
+              country: formData.country,
+              age: parseInt(formData.age) || 18
             }
           }
         });
@@ -107,6 +113,56 @@ export default function AuthForm({ mode, onLogin, onToggleMode, onClose }: AuthF
         <form onSubmit={handleSubmit} className="space-y-4">
           {mode === 'signup' && (
             <div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    City
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.city}
+                    onChange={(e) => handleInputChange('city', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Your city"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Country
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.country}
+                    onChange={(e) => handleInputChange('country', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Your country"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Age
+                </label>
+                <input
+                  type="number"
+                  min="13"
+                  max="120"
+                  required
+                  value={formData.age}
+                  onChange={(e) => handleInputChange('age', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Your age (13+)"
+                />
+              </div>
+            </>
+          )}
+
+          {mode === 'signup' && (
+            <>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Username
               </label>

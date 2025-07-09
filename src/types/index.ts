@@ -22,10 +22,10 @@ export interface AssessmentData {
 export interface User {
   id: string;
   username: string;
-  city: string;
-  country: string;
-  age: number;
   email: string;
+  city?: string;
+  country?: string;
+  age?: number;
   createdAt: Date;
 }
 
