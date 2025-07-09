@@ -48,10 +48,17 @@ export function useSavedNations(user: User | null, subscription: any): SavedNati
       const nations: SavedNation[] = (data || []).map(nation => ({
         id: nation.id,
         name: nation.name,
+        userId: nation.user_id,
+        sessionId: nation.session_id,
         assessmentData: nation.assessment_data,
         customPolicies: nation.custom_policies || {},
+        isTemporary: nation.is_temporary,
         createdAt: new Date(nation.created_at),
-        lastModified: new Date(nation.updated_at)
+        updatedAt: new Date(nation.updated_at),
+        expiresAt: nation.expires_at ? new Date(nation.expires_at) : null,
+        deletedAt: nation.deleted_at ? new Date(nation.deleted_at) : null,
+        isPublic: nation.is_public,
+        shareToken: nation.share_token
       }));
 
       setSavedNations(nations);

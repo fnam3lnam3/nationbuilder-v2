@@ -1,6 +1,5 @@
 import React from 'react';
-import { Globe, Calendar, Trash2, Edit, Eye, Share2, Copy, Check } from 'lucide-react';
-import { SavedNation } from '../types';
+import { Globe, Calendar, Trash2, Edit, Eye, Share2, Copy, Check, Trophy, Trophy as TrophyOff } from 'lucide-react'ion } from '../types';
 import { useState } from 'react';
 
 interface SavedNationsProps {

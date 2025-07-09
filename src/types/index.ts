@@ -32,6 +32,8 @@ export interface User {
 export interface SavedNation {
   id: string;
   name: string;
+  userId?: string;
+  sessionId?: string;
   assessmentData: AssessmentData;
   customPolicies?: {
     ethical?: string;
@@ -39,8 +41,13 @@ export interface SavedNation {
     judicial?: string;
     environmental?: string;
   };
+  isTemporary?: boolean;
   createdAt: Date;
-  lastModified: Date;
+  updatedAt?: Date;
+  expiresAt?: Date | null;
+  deletedAt?: Date | null;
+  isPublic?: boolean;
+  shareToken?: string | null;
 }
 
 export interface ResultsData {
