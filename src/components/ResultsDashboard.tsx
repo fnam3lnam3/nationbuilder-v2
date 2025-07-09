@@ -11,7 +11,7 @@ interface ResultsDashboardProps {
   onPolicyUpdate: (policies: Record<string, string>) => void;
   user?: User | null;
   onLogin: () => void;
-  onSaveNation: (name: string) => void;
+  onSaveNation: () => void;
   isExistingNation?: boolean;
 }
 
@@ -28,8 +28,6 @@ export default function ResultsDashboard({
 }: ResultsDashboardProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'constitution' | 'analysis'>('overview');
   const [showPolicyEditor, setShowPolicyEditor] = useState(false);
-  const [showSaveDialog, setShowSaveDialog] = useState(false);
-  const [nationName, setNationName] = useState('');
   
   // Debug logging - more detailed
   console.log('ResultsDashboard - Component rendered');
@@ -367,19 +365,7 @@ export default function ResultsDashboard({
   };
 
   const handleSaveNation = () => {
-    if (!user) {
-      onLogin();
-      return;
-    }
-    setShowSaveDialog(true);
-  };
-
-  const handleSaveConfirm = () => {
-    if (nationName.trim()) {
-      onSaveNation(nationName.trim());
-      setShowSaveDialog(false);
-      setNationName('');
-    }
+    onSaveNation();
   };
 
   const MetricCard = ({ title, value, icon: Icon, color }: { title: string; value: number; icon: any; color: string }) => (
@@ -435,8 +421,8 @@ export default function ResultsDashboard({
                 onClick={handleSaveNation}
                 className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
               >
-                {user ? <Save className="h-4 w-4" /> : <LogIn className="h-4 w-4" />}
-                <span>{user ? (isExistingNation ? 'Update Nation' : 'Save Nation') : 'Login to Save'}</span>
+                <Save className="h-4 w-4" />
+                <span>{isExistingNation ? 'Update Nation' : 'Save Nation'}</span>
               </button>
               <button
                 onClick={onStartNew}
@@ -786,39 +772,6 @@ export default function ResultsDashboard({
           onClose={() => setShowPolicyEditor(false)}
           currentPolicies={customPolicies}
         />
-      )}
-
-      {/* Save Dialog */}
-      {showSaveDialog && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              {isExistingNation ? 'Update Nation' : 'Save Nation'}
-            </h3>
-            <input
-              type="text"
-              value={nationName}
-              onChange={(e) => setNationName(e.target.value)}
-              placeholder="Enter nation name..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-4"
-            />
-            <div className="flex items-center justify-end space-x-3">
-              <button
-                onClick={() => setShowSaveDialog(false)}
-                className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveConfirm}
-                disabled={!nationName.trim()}
-                className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-6 py-2 rounded-lg transition-colors"
-              >
-                {isExistingNation ? 'Update' : 'Save'}
-              </button>
-            </div>
-          </div>
-        </div>
       )}
     </div>
   );

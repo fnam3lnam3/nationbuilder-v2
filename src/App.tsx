@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
+import { useSessionManager } from './hooks/useSessionManager';
+import { useSavedNations } from './hooks/useSavedNations';
 import LandingPage from './components/LandingPage';
 import AssessmentForm from './components/AssessmentForm';
 import ResultsDashboard from './components/ResultsDashboard';
@@ -7,6 +9,7 @@ import AuthForm from './components/AuthForm';
 import SubscriptionPlans from './components/SubscriptionPlans';
 import SuccessPage from './components/SuccessPage';
 import SavedNations from './components/SavedNations';
+import SaveNationDialog from './components/SaveNationDialog';
 import { AssessmentData, User, SavedNation } from './types';
 
 const supabase = createClient(
@@ -21,12 +24,17 @@ function App() {
   const [assessmentData, setAssessmentData] = useState<AssessmentData | null>(null);
   const [customPolicies, setCustomPolicies] = useState<Record<string, string>>({});
   const [user, setUser] = useState<User | null>(null);
-  const [savedNations, setSavedNations] = useState<SavedNation[]>([]);
   const [showAuth, setShowAuth] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
   const [showSubscriptionPlans, setShowSubscriptionPlans] = useState(false);
   const [subscription, setSubscription] = useState<any>(null);
   const [currentNationId, setCurrentNationId] = useState<string | null>(null);
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [tempNationCreated, setTempNationCreated] = useState(false);
+
+  // Use custom hooks for session and saved nations management
+  const sessionManager = useSessionManager();
+  const savedNationsManager = useSavedNations(user, subscription);
 
   // Initialize auth state and load saved data
   useEffect(() => {
@@ -68,12 +76,6 @@ function App() {
       }
     );
 
-    // Load saved nations from localStorage for backward compatibility
-    const savedNationsData = localStorage.getItem('nationbuilder_nations');
-    if (savedNationsData) {
-      setSavedNations(JSON.parse(savedNationsData));
-    }
-
     return () => authSubscription.unsubscribe();
   }, []);
 
@@ -94,11 +96,6 @@ function App() {
       console.error('Error fetching subscription:', error);
     }
   };
-
-  // Save nations to localStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem('nationbuilder_nations', JSON.stringify(savedNations));
-  }, [savedNations]);
 
   const handleStartAssessment = () => {
     setCurrentState('assessment');
@@ -128,7 +125,22 @@ function App() {
     
     setAssessmentData(sanitizedData);
     console.log('App.tsx - Setting state to results with sanitized data:', sanitizedData);
+    
+    // Automatically create temporary nation
+    createTemporaryNation(sanitizedData);
+    
     setCurrentState('results');
+  };
+
+  const createTemporaryNation = async (data: AssessmentData) => {
+    try {
+      const tempName = `Nation Assessment ${new Date().toLocaleString()}`;
+      await sessionManager.createTemporaryNation(tempName, data, customPolicies);
+      setTempNationCreated(true);
+    } catch (error) {
+      console.error('Failed to create temporary nation:', error);
+      // Continue anyway - user can still view results
+    }
   };
 
   const handleBackToLanding = () => {
@@ -146,6 +158,7 @@ function App() {
     setAssessmentData(null);
     setCustomPolicies({});
     setCurrentNationId(null);
+    setTempNationCreated(false);
     setCurrentState('assessment');
   };
 
@@ -159,33 +172,30 @@ function App() {
   };
 
   const handleSaveNation = (name: string) => {
-    if (!assessmentData || !user) return;
+    setShowSaveDialog(true);
+  };
 
-    const maxNations = subscription?.subscription_status === 'active' ? 30 : 5;
-    
-    if (savedNations.length >= maxNations) {
-      alert(`You can only save up to ${maxNations} nations${subscription?.subscription_status === 'active' ? ' with your premium subscription' : ' in the free tier'}. Please delete one to save a new nation.`);
-      return;
-    }
+  const handleSaveConfirm = async (name: string) => {
+    if (!assessmentData) return;
 
-    const newNation: SavedNation = {
-      id: currentNationId || Math.random().toString(36).substr(2, 9),
-      name,
-      assessmentData,
-      customPolicies: Object.keys(customPolicies).length > 0 ? customPolicies : undefined,
-      createdAt: currentNationId ? savedNations.find(n => n.id === currentNationId)?.createdAt || new Date() : new Date(),
-      lastModified: new Date()
-    };
-
-    if (currentNationId) {
-      // Update existing nation
-      setSavedNations(prev => prev.map(nation => 
-        nation.id === currentNationId ? newNation : nation
-      ));
-    } else {
-      // Save new nation
-      setSavedNations(prev => [...prev, newNation]);
-      setCurrentNationId(newNation.id);
+    try {
+      if (currentNationId) {
+        // Update existing nation
+        await savedNationsManager.updateNation(currentNationId, name, assessmentData, customPolicies);
+      } else {
+        // Save new nation
+        const nationId = await savedNationsManager.saveNation(name, assessmentData, customPolicies);
+        setCurrentNationId(nationId);
+        
+        // If user was logged in, link any temporary nation
+        if (user && tempNationCreated) {
+          await sessionManager.linkToUser(user.id);
+        }
+      }
+      
+      setTempNationCreated(false);
+    } catch (error: any) {
+      throw error; // Let SaveNationDialog handle the error display
     }
   };
 
@@ -204,11 +214,22 @@ function App() {
   };
 
   const handleDeleteNation = (nationId: string) => {
-    if (confirm('Are you sure you want to delete this nation?')) {
-      setSavedNations(prev => prev.filter(nation => nation.id !== nationId));
-      if (currentNationId === nationId) {
+    if (!confirm('Are you sure you want to delete this nation?')) return;
+    
+    savedNationsManager.deleteNation(nationId).then(success => {
+      if (success && currentNationId === nationId) {
         setCurrentNationId(null);
       }
+    });
+  };
+
+  const handleSaveDialogClose = () => {
+    setShowSaveDialog(false);
+    
+    // If user chose not to save and there's a temporary nation, clean it up
+    if (tempNationCreated && !currentNationId) {
+      // The temporary nation will be automatically cleaned up by the database
+      setTempNationCreated(false);
     }
   };
 
@@ -249,6 +270,10 @@ function App() {
             onViewSavedNations={handleViewSavedNations}
             onShowSubscriptionPlans={handleShowSubscriptionPlans}
             subscription={subscription}
+            savedNationsCount={savedNationsManager.savedNations.length}
+            maxNations={savedNationsManager.getMaxNations()}
+            savedNationsCount={savedNationsManager.savedNations.length}
+            maxNations={savedNationsManager.getMaxNations()}
           />
           {showAuth && (
             <AuthForm
@@ -304,8 +329,21 @@ function App() {
           onPolicyUpdate={handlePolicyUpdate}
           user={user}
           onLogin={() => setShowAuth(true)}
-          onSaveNation={handleSaveNation}
+          onSaveNation={() => setShowSaveDialog(true)}
           isExistingNation={!!currentNationId}
+        />
+        {showSaveDialog && (
+          <SaveNationDialog
+            user={user}
+            onSave={handleSaveConfirm}
+            onLogin={() => {
+              setShowSaveDialog(false);
+              setShowAuth(true);
+            }}
+            onClose={handleSaveDialogClose}
+            isExistingNation={!!currentNationId}
+            defaultName={currentNationId ? savedNationsManager.savedNations.find(n => n.id === currentNationId)?.name || '' : ''}
+          />
         />
       );
     
@@ -324,7 +362,7 @@ function App() {
                 </button>
               </div>
               <SavedNations
-                nations={savedNations}
+                nations={savedNationsManager.savedNations}
                 onLoad={handleLoadNation}
                 onDelete={handleDeleteNation}
                 onEdit={handleEditNation}

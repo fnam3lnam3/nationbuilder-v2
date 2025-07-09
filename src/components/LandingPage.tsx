@@ -11,6 +11,8 @@ interface LandingPageProps {
   onViewSavedNations: () => void;
   onShowSubscriptionPlans: () => void;
   subscription?: any;
+  savedNationsCount?: number;
+  maxNations?: number;
 }
 
 export default function LandingPage({ 
@@ -20,7 +22,9 @@ export default function LandingPage({
   onLogout, 
   onViewSavedNations, 
   onShowSubscriptionPlans,
-  subscription 
+  subscription,
+  savedNationsCount = 0,
+  maxNations = 5
 }: LandingPageProps) {
   const [showDatabaseTest, setShowDatabaseTest] = React.useState(false);
 
@@ -58,7 +62,7 @@ export default function LandingPage({
                   className="flex items-center space-x-2 text-blue-100 hover:text-white transition-colors"
                 >
                   <BookOpen className="h-4 w-4" />
-                  <span>My Nations</span>
+                  <span>My Nations ({savedNationsCount}/{maxNations})</span>
                 </button>
                 <button
                   onClick={() => setShowDatabaseTest(true)}
@@ -111,7 +115,7 @@ export default function LandingPage({
           
           {user && (
             <p className="text-blue-200 mt-4 text-sm">
-              Save up to {subscription?.subscription_status === 'active' ? '30' : '5'} nations and customize policies after analysis
+              You have {savedNationsCount}/{maxNations} saved nations. Customize policies after analysis.
               {subscription?.subscription_status !== 'active' && (
                 <button
                   onClick={onShowSubscriptionPlans}
