@@ -206,19 +206,21 @@ export const getLeaderboardEntries = async (): Promise<{
 
     // Mars Pioneers: Include ALL non-Earth nations, sorted by Mars score
     const martian = marsEligibleNations
-      .map(nation => ({
+      .map(nation => {
         const username = nation.users?.raw_user_meta_data?.username || 
                         nation.users?.email?.split('@')[0] || 
                         'Anonymous';
-        id: nation.id,
+        return {
+          id: nation.id,
+          name: nation.name,
           username,
-        name: nation.name,
-        score: calculateMartianScore(nation.assessment_data),
-        assessmentData: nation.assessment_data,
-        customPolicies: nation.custom_policies,
-        createdAt: new Date(nation.created_at),
-        category: 'martian' as const
-      }))
+          score: calculateMartianScore(nation.assessment_data),
+          assessmentData: nation.assessment_data,
+          customPolicies: nation.custom_policies,
+          createdAt: new Date(nation.created_at),
+          category: 'martian' as const
+        };
+      })
       .sort((a, b) => b.score - a.score)
       .slice(0, 5);
 
