@@ -1,6 +1,7 @@
 import React from 'react';
-import { ChevronRight, Globe, Scale, FileText, BarChart3, Users, Zap, LogIn, LogOut, BookOpen } from 'lucide-react';
+import { ChevronRight, Globe, Scale, FileText, BarChart3, Users, Zap, LogIn, LogOut, BookOpen, Database } from 'lucide-react';
 import { User } from '../types';
+import DatabaseTest from './DatabaseTest';
 
 interface LandingPageProps {
   onStartAssessment: () => void;
@@ -21,6 +22,8 @@ export default function LandingPage({
   onShowSubscriptionPlans,
   subscription 
 }: LandingPageProps) {
+  const [showDatabaseTest, setShowDatabaseTest] = React.useState(false);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900">
       {/* Header */}
@@ -56,6 +59,13 @@ export default function LandingPage({
                 >
                   <BookOpen className="h-4 w-4" />
                   <span>My Nations</span>
+                </button>
+                <button
+                  onClick={() => setShowDatabaseTest(true)}
+                  className="flex items-center space-x-2 text-blue-100 hover:text-white transition-colors"
+                >
+                  <Database className="h-4 w-4" />
+                  <span>DB Test</span>
                 </button>
                 <button
                   onClick={onLogout}
@@ -197,6 +207,11 @@ export default function LandingPage({
           </p>
         </div>
       </footer>
+
+      {/* Database Test Modal */}
+      {showDatabaseTest && (
+        <DatabaseTest onClose={() => setShowDatabaseTest(false)} />
+      )}
     </div>
   );
 }
