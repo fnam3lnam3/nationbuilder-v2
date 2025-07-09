@@ -79,10 +79,15 @@ export default function UserProfile({
   const [leaderboardEntries, setLeaderboardEntries] = useState<LeaderboardEntry[]>([]);
   const [sharedNations, setSharedNations] = useState<SavedNation[]>([]);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [showCancelDetails, setShowCancelDetails] = useState(false);
+  const [showCancelSuccess, setShowCancelSuccess] = useState(false);
   const [show2FASetup, setShow2FASetup] = useState(false);
   const [cancelling, setCancelling] = useState(false);
 
   const isPremium = subscription?.subscription_status === 'active';
+  const subscriptionEndDate = subscription?.current_period_end 
+    ? new Date(subscription.current_period_end * 1000).toLocaleDateString()
+    : null;
 
   // Calculate age range based on user's age
   const getAgeRange = (age: number): string => {
@@ -102,6 +107,113 @@ export default function UserProfile({
     if (age <= 80) return '76 - 80 years old';
     if (age <= 89) return '81 - 89 years old';
     if (age <= 99) return '90 - 99 years old';
+              <div className="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4 flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <AlertTriangle className="h-6 w-6 text-white" />
+                  <h2 className="text-xl font-bold text-white">Subscription Cancellation Details</h2>
+                </div>
+                <button
+                  onClick={() => setShowCancelDetails(false)}
+                  className="text-white hover:text-red-200 transition-colors"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+
+              <div className="p-6">
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">What happens when you cancel?</h3>
+                  
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                    <div className="flex items-start space-x-2">
+                      <Calendar className="h-5 w-5 text-blue-600 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-blue-900">Your subscription will remain active until:</p>
+                        <p className="text-blue-800 text-lg font-semibold">
+                          {subscriptionEndDate || 'End of current billing period'}
+                        </p>
+                        <p className="text-blue-700 text-sm mt-1">
+                          You'll continue to have full access to all premium features until this date.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                    <h4 className="font-semibold text-red-900 mb-2">After cancellation, you will lose:</h4>
+                    <ul className="space-y-1 text-red-800 text-sm">
+                      <li>• Ability to save more than 5 nations (current: {savedNations.length}/30)</li>
+                      <li>• Access to full leaderboards (top 30 in each category)</li>
+                      <li>• Early access to new features</li>
+                      <li>• Premium support priority</li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                    <h4 className="font-semibold text-green-900 mb-2">What you'll keep:</h4>
+                    <ul className="space-y-1 text-green-800 text-sm">
+                      <li>• All your currently saved nations (up to 5 will remain accessible)</li>
+                      <li>• Basic leaderboard access (top 5 in each category)</li>
+                      <li>• Full nation building and analysis features</li>
+                      <li>• Account data and privacy settings</li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                    <div className="flex items-start space-x-2">
+                      <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-yellow-900">Important Notes:</p>
+                        <ul className="text-yellow-800 text-sm mt-1 space-y-1">
+                          <li>• No refunds are available for pre-paid subscription periods</li>
+                          <li>• If you have more than 5 saved nations, you'll need to choose which 5 to keep</li>
+                          <li>• You can reactivate your subscription at any time</li>
+                          <li>• Cancellation takes effect at the end of your current billing cycle</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  {savedNations.length > 5 && (
+                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
+                      <div className="flex items-start space-x-2">
+                        <AlertTriangle className="h-5 w-5 text-orange-600 mt-0.5" />
+                        <div>
+                          <p className="font-medium text-orange-900">Action Required:</p>
+                          <p className="text-orange-800 text-sm mt-1">
+                            You currently have {savedNations.length} saved nations. After cancellation, 
+                            you'll need to choose which 5 nations to keep. The system will automatically 
+                            keep your 5 most recently updated nations unless you specify otherwise.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => setShowCancelDetails(false)}
+                    className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-3 rounded-lg transition-colors font-medium"
+                  >
+                    Keep My Subscription
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowCancelDetails(false);
+                      setShowCancelConfirm(true);
+                    }}
+                    className="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-lg transition-colors font-medium"
+                  >
+                    Proceed to Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Final Cancellation Confirmation Modal */}
     if (age <= 110) return '100 - 110 years old';
     return '111+ years old';
   };
@@ -209,10 +321,33 @@ Data Source: Nationbuilder Analytics System`;
   const handleCancelSubscription = async () => {
     setCancelling(true);
     try {
-      // In a real app, this would call a Stripe API to cancel the subscription
-      // For now, we'll just show the confirmation
-      alert('Subscription cancellation request submitted. Your premium features will remain active until the end of your current billing period.');
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error('No active session');
+      }
+
+      // Call Stripe to cancel subscription at period end
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/stripe-cancel-subscription`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          subscription_id: subscription?.subscription_id
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to cancel subscription');
+      }
+
       setShowCancelConfirm(false);
+      setShowCancelDetails(false);
+      setShowCancelSuccess(true);
     } catch (error) {
       console.error('Error cancelling subscription:', error);
       alert('Failed to cancel subscription. Please try again or contact support.');
@@ -623,6 +758,19 @@ Data Source: Nationbuilder Analytics System`;
                   </button>
                 )}
 
+                {isPremium && (
+                  <button
+                    onClick={() => setShowCancelDetails(true)}
+                    className="flex items-center space-x-2 w-full p-3 text-left bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+                  >
+                    <CreditCard className="h-4 w-4 text-red-600" />
+                    <div>
+                      <div className="font-medium text-red-900">Cancel Subscription</div>
+                      <div className="text-sm text-red-600">End your premium subscription</div>
+                    </div>
+                  </button>
+                )}
+
                 <button
                   onClick={onLogout}
                   className="flex items-center space-x-2 w-full p-3 text-left bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
@@ -639,40 +787,260 @@ Data Source: Nationbuilder Analytics System`;
         )}
 
         {/* Cancel Subscription Modal */}
+        {showCancelDetails && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+              <div className="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4 flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <AlertTriangle className="h-6 w-6 text-white" />
+                  <h2 className="text-xl font-bold text-white">Subscription Cancellation Details</h2>
+                </div>
+                <button
+                  onClick={() => setShowCancelDetails(false)}
+                  className="text-white hover:text-red-200 transition-colors"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+
+              <div className="p-6">
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">What happens when you cancel?</h3>
+                  
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                    <div className="flex items-start space-x-2">
+                      <Calendar className="h-5 w-5 text-blue-600 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-blue-900">Your subscription will remain active until:</p>
+                        <p className="text-blue-800 text-lg font-semibold">
+                          {subscriptionEndDate || 'End of current billing period'}
+                        </p>
+                        <p className="text-blue-700 text-sm mt-1">
+                          You'll continue to have full access to all premium features until this date.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                    <h4 className="font-semibold text-red-900 mb-2">After cancellation, you will lose:</h4>
+                    <ul className="space-y-1 text-red-800 text-sm">
+                      <li>• Ability to save more than 5 nations (current: {savedNations.length}/30)</li>
+                      <li>• Access to full leaderboards (top 30 in each category)</li>
+                      <li>• Early access to new features</li>
+                      <li>• Premium support priority</li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                    <h4 className="font-semibold text-green-900 mb-2">What you'll keep:</h4>
+                    <ul className="space-y-1 text-green-800 text-sm">
+                      <li>• All your currently saved nations (up to 5 will remain accessible)</li>
+                      <li>• Basic leaderboard access (top 5 in each category)</li>
+                      <li>• Full nation building and analysis features</li>
+                      <li>• Account data and privacy settings</li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                    <div className="flex items-start space-x-2">
+                      <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-yellow-900">Important Notes:</p>
+                        <ul className="text-yellow-800 text-sm mt-1 space-y-1">
+                          <li>• No refunds are available for pre-paid subscription periods</li>
+                          <li>• If you have more than 5 saved nations, you'll need to choose which 5 to keep</li>
+                          <li>• You can reactivate your subscription at any time</li>
+                          <li>• Cancellation takes effect at the end of your current billing cycle</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  {savedNations.length > 5 && (
+                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
+                      <div className="flex items-start space-x-2">
+                        <AlertTriangle className="h-5 w-5 text-orange-600 mt-0.5" />
+                        <div>
+                          <p className="font-medium text-orange-900">Action Required:</p>
+                          <p className="text-orange-800 text-sm mt-1">
+                            You currently have {savedNations.length} saved nations. After cancellation, 
+                            you'll need to choose which 5 nations to keep. The system will automatically 
+                            keep your 5 most recently updated nations unless you specify otherwise.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Undeployed Help Desk Section - Hidden but ready for future deployment */}
+                <div className="hidden">
+                  <div className="border-t border-gray-200 pt-4 mb-6">
+                    <h4 className="font-medium text-gray-900 mb-3">Need Help?</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center space-x-2">
+                        <HelpCircle className="h-4 w-4 text-gray-500" />
+                        <a href="#" className="text-blue-600 hover:text-blue-700 flex items-center space-x-1">
+                          <span>Contact Help Desk</span>
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Shield className="h-4 w-4 text-gray-500" />
+                        <a href="#" className="text-blue-600 hover:text-blue-700 flex items-center space-x-1">
+                          <span>Terms of Service</span>
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Lock className="h-4 w-4 text-gray-500" />
+                        <a href="#" className="text-blue-600 hover:text-blue-700 flex items-center space-x-1">
+                          <span>Privacy Policy</span>
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => setShowCancelDetails(false)}
+                    className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-3 rounded-lg transition-colors font-medium"
+                  >
+                    Keep My Subscription
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowCancelDetails(false);
+                      setShowCancelConfirm(true);
+                    }}
+                    className="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-lg transition-colors font-medium"
+                  >
+                    Proceed to Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Final Cancellation Confirmation Modal */}
         {showCancelConfirm && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
               <div className="text-center mb-6">
                 <AlertTriangle className="h-12 w-12 text-red-600 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">Cancel Subscription</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">Final Confirmation</h3>
                 <p className="text-gray-600">
-                  Your premium subscription will remain active until the end of your current billing period. 
-                  After that, you'll lose access to premium features but keep your saved nations.
+                  Are you absolutely sure you want to cancel your Nationleader subscription?
                 </p>
               </div>
 
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-                <p className="text-yellow-800 text-sm">
-                  <strong>What you'll lose:</strong> Ability to save more than 5 nations, full leaderboard access, 
-                  and early access to new features.
+                  Are you absolutely sure you want to cancel your Nationleader subscription?
+                  This action will:
                 </p>
+                <ul className="text-red-700 text-sm space-y-1">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                <p className="text-red-800 text-sm font-medium mb-2">
+                  This action will:
+                </p>
+                <ul className="text-red-700 text-sm space-y-1">
+                  <li>• Cancel your subscription at the end of the current billing period ({subscriptionEndDate})</li>
+                  <li>• Remove access to premium features after that date</li>
+                  <li>• Limit you to 5 saved nations instead of 30</li>
+                  <li>• Cannot be undone (though you can resubscribe later)</li>
+                </ul>
               </div>
 
               <div className="flex space-x-3">
                 <button
                   onClick={() => setShowCancelConfirm(false)}
-                  className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg transition-colors"
+                  className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-3 rounded-lg transition-colors font-medium"
                 >
-                  Keep Subscription
+                  No, Keep My Subscription
                 </button>
                 <button
                   onClick={handleCancelSubscription}
                   disabled={cancelling}
-                  className="flex-1 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg transition-colors"
+                  className="flex-1 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white px-4 py-3 rounded-lg transition-colors font-medium"
                 >
-                  {cancelling ? 'Cancelling...' : 'Cancel Subscription'}
+                  {cancelling ? 'Processing...' : 'Yes, Cancel Subscription'}
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Cancellation Success Modal */}
+        {showCancelSuccess && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CreditCard className="h-8 w-8 text-green-600" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">Subscription Cancelled</h3>
+                <p className="text-gray-600">
+                  Your subscription has been successfully cancelled and will not renew.
+                </p>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <div className="text-center">
+                  <p className="font-medium text-blue-900 mb-1">Premium access continues until:</p>
+                  <p className="text-blue-800 text-lg font-semibold">
+                    {subscriptionEndDate}
+                  </p>
+                  <p className="text-blue-700 text-sm mt-2">
+                    You'll receive an email confirmation with all the details.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setShowCancelSuccess(false)}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg transition-colors font-medium"
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Cancellation Success Modal */}
+        {showCancelSuccess && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CreditCard className="h-8 w-8 text-green-600" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">Subscription Cancelled</h3>
+                <p className="text-gray-600">
+                  Your subscription has been successfully cancelled and will not renew.
+                </p>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <div className="text-center">
+                  <p className="font-medium text-blue-900 mb-1">Premium access continues until:</p>
+                  <p className="text-blue-800 text-lg font-semibold">
+                    {subscriptionEndDate}
+                  </p>
+                  <p className="text-blue-700 text-sm mt-2">
+                    You'll receive an email confirmation with all the details.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setShowCancelSuccess(false)}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg transition-colors font-medium"
+              >
+                Continue
+              </button>
             </div>
           </div>
         )}
