@@ -179,8 +179,8 @@ export default function LandingPage({
               <div className="p-6">
                 <h4 className="text-xl font-semibold text-white mb-3">Perfect Harmony</h4>
                 <p className="text-blue-100 text-sm leading-relaxed">
-                  Advanced sustainable cities where technology serves humanity, resources are abundant, 
-                  and citizens thrive in peaceful, prosperous communities with perfect governance systems.
+                  Pefect your advanced sustainable nation where technology serves humanity, resources are abundant, 
+                  and citizens thrive in peaceful, prosperous communities with fair and frugal governance.
                 </p>
               </div>
             </div>
@@ -203,8 +203,7 @@ export default function LandingPage({
               <div className="p-6">
                 <h4 className="text-xl font-semibold text-white mb-3">Cautionary Future</h4>
                 <p className="text-blue-100 text-sm leading-relaxed">
-                  Authoritarian surveillance states where freedom is restricted, resources are scarce, 
-                  and citizens struggle under oppressive systems that prioritize control over human welfare.
+                  Launch an authoritarian surveillance state where freedom is restricted and resources are metered, but citizens have greater reliance on government and each other as most needs are met.
                 </p>
               </div>
             </div>
@@ -227,8 +226,8 @@ export default function LandingPage({
               <div className="p-6">
                 <h4 className="text-xl font-semibold text-white mb-3">New Frontiers</h4>
                 <p className="text-blue-100 text-sm leading-relaxed">
-                  Pioneering colonies on Mars where humanity adapts to extreme environments, develops 
-                  innovative governance for space habitats, and creates self-sustaining interplanetary societies.
+                  Build a pioneering colony on Mars where humanity adapts to extreme environments, develops 
+                  innovative governance for space habitats, and creates a self-sustaining society.
                 </p>
               </div>
             </div>
