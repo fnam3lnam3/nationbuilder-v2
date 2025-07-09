@@ -17,6 +17,15 @@ export default function SuccessPage({ onContinue }: SuccessPageProps) {
 
   useEffect(() => {
     fetchSubscription();
+    
+    // Check if there's a pending nation save after subscription upgrade
+    const pendingSave = sessionStorage.getItem('pendingNationSave');
+    if (pendingSave === 'true') {
+      // The App component will handle the auto-save, we just need to continue
+      setTimeout(() => {
+        onContinue();
+      }, 2000); // Give a moment to show the success message
+    }
   }, []);
 
   const fetchSubscription = async () => {
@@ -68,17 +77,29 @@ export default function SuccessPage({ onContinue }: SuccessPageProps) {
           </div>
         ) : (
           <div className="bg-blue-50 rounded-lg p-4 mb-6 border border-blue-200">
+            {sessionStorage.getItem('pendingNationSave') === 'true' ? (
+              <p className="text-blue-800">
+                Your purchase is being processed and your nation will be saved automatically. You'll be redirected shortly.
+              </p>
+            ) : (
             <p className="text-blue-800">
               Your purchase is being processed. Premium features will be available shortly.
             </p>
+            )}
           </div>
         )}
 
         <button
           onClick={onContinue}
+          disabled={sessionStorage.getItem('pendingNationSave') === 'true' && loading}
           className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center space-x-2"
         >
-          <span>Continue to Nationbuilder</span>
+          <span>
+            {sessionStorage.getItem('pendingNationSave') === 'true' 
+              ? 'Saving Nation...' 
+              : 'Continue to Nationbuilder'
+            }
+          </span>
           <ArrowRight className="h-4 w-4" />
         </button>
 

@@ -87,6 +87,27 @@ function App() {
     return () => authSubscription.unsubscribe();
   }, []);
 
+  // Check for pending nation save after subscription upgrade
+  useEffect(() => {
+    const pendingSave = sessionStorage.getItem('pendingNationSave');
+    const pendingName = sessionStorage.getItem('pendingNationName');
+    
+    if (pendingSave === 'true' && pendingName && user && subscription?.subscription_status === 'active') {
+      // Clear the pending save flags
+      sessionStorage.removeItem('pendingNationSave');
+      sessionStorage.removeItem('pendingNationName');
+      
+      // Auto-save the nation with the stored name
+      if (assessmentData) {
+        handleSaveConfirm(pendingName).catch(error => {
+          console.error('Failed to auto-save nation after upgrade:', error);
+          // Show save dialog again if auto-save fails
+          setShowSaveDialog(true);
+        });
+      }
+    }
+  }, [user, subscription, assessmentData]);
+
   const fetchSubscription = async () => {
     try {
       const { data, error } = await supabase
@@ -376,6 +397,19 @@ function App() {
               onClose={handleSaveDialogClose}
               isExistingNation={!!currentNationId}
               defaultName={currentNationId ? savedNationsManager.savedNations.find(n => n.id === currentNationId)?.name || '' : ''}
+              savedNations={savedNationsManager.savedNations}
+              maxNations={savedNationsManager.getMaxNations()}
+              onDeleteNation={async (nationId: string) => {
+                const success = await savedNationsManager.deleteNation(nationId);
+                if (!success) {
+                  throw new Error('Failed to delete nation');
+                }
+              }}
+              onUpgrade={() => {
+                setShowSaveDialog(false);
+                setShowSubscriptionPlans(true);
+              }}
+              subscription={subscription}
             />
           )}
         </>
