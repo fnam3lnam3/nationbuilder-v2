@@ -349,9 +349,22 @@ export const getNationById = async (nationId: string): Promise<SavedNation | nul
 
     if (error || !data) return null;
 
-      .select('*')
     return {
-    }
+      id: data.id,
+      name: data.name,
+      userId: data.user_id,
+      sessionId: data.session_id,
+      assessmentData: data.assessment_data,
+      customPolicies: data.custom_policies,
+      isTemporary: data.is_temporary,
+      createdAt: new Date(data.created_at),
+      updatedAt: new Date(data.updated_at),
+      expiresAt: data.expires_at ? new Date(data.expires_at) : null,
+      deletedAt: data.deleted_at ? new Date(data.deleted_at) : null,
+      isPublic: data.is_public,
+      shareToken: data.share_token
+    };
+  } catch (error) {
     console.error('Error fetching nation by ID:', error);
     return null;
   }
