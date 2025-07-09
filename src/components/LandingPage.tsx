@@ -185,7 +185,7 @@ export default function LandingPage({
           </p>
           <button
             onClick={onStartAssessment}
-            className="bg-gradient-to-r from-yellow-400 to-yellow-600 hover:from-yellow-500 hover:to-yellow-700 text-yellow-900 font-bold py-6 px-12 rounded-xl transform hover:scale-105 transition-all duration-200 shadow-2xl mx-auto text-2xl border-2 border-yellow-300"
+            className="bg-gradient-to-r from-yellow-400 to-yellow-600 hover:from-yellow-500 hover:to-yellow-700 text-yellow-900 font-bold py-6 px-12 rounded-xl transform hover:scale-105 transition-all duration-200 shadow-2xl mx-auto text-3xl border-2 border-yellow-300"
           >
             Build Your Nation
           </button>
