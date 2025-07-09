@@ -180,7 +180,7 @@ export default function LandingPage({
               Compare with others.
             </a>
           </p>
-          <p className="text-base text-blue-100 mb-4 max-w-2xl mx-auto">
+          <p className="text-sm text-blue-100 mb-4 max-w-2xl mx-auto">
             A GPT AI-powered app that creates a Nation with a government, economy, society, and resourcing that you define. Download a free, model constitution. AI assessment pulls from human history and a simulation model to assess and optimize your nation.
           </p>
           <button
@@ -191,7 +191,7 @@ export default function LandingPage({
           </button>
           
           {user && (
-            <p className="text-blue-200 mt-2 text-sm">
+            <p className="text-blue-200 mt-2 text-xs">
               You have {savedNationsCount}/{maxNations} saved nations. Customize policies after analysis.
               {subscription?.subscription_status !== 'active' && (
                 <button
