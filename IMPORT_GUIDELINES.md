@@ -31,9 +31,9 @@ import { analytics } from '../utils/analytics';
 
 **Using absolute imports (preferred):**
 ```typescript
-import SavedNations from '@/components/SavedNations';
-import { useSavedNations } from '@/hooks/useSavedNations';
-import { SavedNation } from '@/types';
+import SavedNations from './components/SavedNations';
+import { useSavedNations } from './hooks/useSavedNations';
+import { SavedNation } from './types';
 ```
 
 #### ❌ Incorrect Import Patterns
