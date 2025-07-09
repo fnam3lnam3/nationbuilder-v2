@@ -3,7 +3,33 @@ import { SavedNation, AssessmentData } from '../types';
 
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
+    // Get unique user IDs from nations
+    const userIds = [...new Set(nations?.map(n => n.user_id).filter(Boolean))];
+    
+    // Fetch user data separately
+    const { data: users, error: usersError } = await supabase.auth.admin.listUsers();
+    
+    if (usersError) {
+      console.error('Error fetching users:', usersError.message);
+      // Return nations without user data if user fetch fails
+      return nations?.map(nation => ({
+        ...nation,
+        user_id: { id: nation.user_id, email: 'Unknown', raw_user_meta_data: {} }
+      })) || [];
+    }
+
+    // Create a map of user data
+    const userMap = new Map(users.users.map(user => [user.id, user]));
+
+    // Combine nations with user data
+    return nations?.map(nation => ({
+      ...nation,
+      user_id: nation.user_id ? {
+        id: nation.user_id,
+        email: userMap.get(nation.user_id)?.email || 'Unknown',
+        raw_user_meta_data: userMap.get(nation.user_id)?.user_metadata || {}
+      } : null
+    })) || [];
 );
 
 export interface LeaderboardEntry {
@@ -349,15 +375,8 @@ export const getNationById = async (nationId: string): Promise<SavedNation | nul
 
     if (error || !data) return null;
 
+      .select('*')
     return {
-      id: data.id,
-      name: data.name,
-      assessmentData: data.assessment_data,
-      customPolicies: data.custom_policies,
-      createdAt: new Date(data.created_at),
-      lastModified: new Date(data.updated_at)
-    };
-  } catch (error) {
     console.error('Error fetching nation by ID:', error);
     return null;
   }
