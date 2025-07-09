@@ -10,6 +10,7 @@ import SubscriptionPlans from './components/SubscriptionPlans';
 import SuccessPage from './components/SuccessPage';
 import SavedNations from './components/SavedNations';
 import SaveNationDialog from './components/SaveNationDialog';
+import UserProfile from './components/UserProfile';
 import { AssessmentData, User, SavedNation } from './types';
 import { analytics } from './utils/analytics';
 import './utils/populateLeaderboards';
@@ -19,7 +20,7 @@ const supabase = createClient(
   import.meta.env.VITE_SUPABASE_ANON_KEY
 );
 
-type AppState = 'landing' | 'assessment' | 'results' | 'saved-nations' | 'success';
+type AppState = 'landing' | 'assessment' | 'results' | 'saved-nations' | 'user-profile' | 'success';
 
 function App() {
   const [currentState, setCurrentState] = useState<AppState>('landing');
@@ -258,7 +259,7 @@ function App() {
   };
 
   const handleViewSavedNations = () => {
-    setCurrentState('saved-nations');
+    setCurrentState('user-profile');
   };
 
   const handlePolicyUpdate = (policies: Record<string, string>) => {
@@ -373,29 +374,19 @@ function App() {
         </>
       );
     
-    case 'saved-nations':
+    case 'user-profile':
       return (
-        <div className="min-h-screen bg-gray-50 py-12 px-4">
-          <div className="max-w-4xl mx-auto">
-            <div className="bg-white rounded-2xl shadow-xl p-8">
-              <div className="flex items-center justify-between mb-8">
-                <h1 className="text-2xl font-bold text-gray-900">Your Saved Nations</h1>
-                <button
-                  onClick={handleBackToLanding}
-                  className="text-blue-600 hover:text-blue-700 font-medium"
-                >
-                  ← Back to Home
-                </button>
-              </div>
-              <SavedNations
-                nations={savedNationsManager.savedNations}
-                onLoad={handleLoadNation}
-                onDelete={handleDeleteNation}
-                onEdit={handleEditNation}
-              />
-            </div>
-          </div>
-        </div>
+        <UserProfile
+          user={user}
+          subscription={subscription}
+          savedNations={savedNationsManager.savedNations}
+          onLoad={handleLoadNation}
+          onDelete={handleDeleteNation}
+          onEdit={handleEditNation}
+          onLogout={handleLogout}
+          onShowSubscriptionPlans={handleShowSubscriptionPlans}
+          onBack={handleBackToLanding}
+        />
       );
     
     case 'success':
@@ -411,6 +402,8 @@ function App() {
           onViewSavedNations={handleViewSavedNations}
           onShowSubscriptionPlans={handleShowSubscriptionPlans}
           subscription={subscription}
+          savedNationsCount={savedNationsManager.savedNations.length}
+          maxNations={savedNationsManager.getMaxNations()}
         />
       );
   }

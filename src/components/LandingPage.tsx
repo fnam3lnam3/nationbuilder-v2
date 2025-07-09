@@ -131,7 +131,7 @@ export default function LandingPage({
                   className="flex items-center space-x-2 text-blue-100 hover:text-white transition-colors"
                 >
                   <BookOpen className="h-4 w-4" />
-                  <span>My Nations ({savedNationsCount}/{maxNations})</span>
+                  <span>My Profile</span>
                 </button>
                 <button
                   onClick={onLogout}

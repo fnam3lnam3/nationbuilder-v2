@@ -35,9 +35,7 @@ export default function SavedNations({ nations, onLoad, onDelete, onEdit }: Save
   }, [nations]);
 
   const handleDelete = (nationId: string, nationName: string) => {
-    if (window.confirm(`Are you sure you want to delete "${nationName}"? This action cannot be undone.`)) {
-      onDelete(nationId);
-    }
+    onDelete(nationId);
   };
 
   const handleShare = async (nation: SavedNation) => {
