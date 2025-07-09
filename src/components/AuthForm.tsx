@@ -158,7 +158,7 @@ export default function AuthForm({ mode, onLogin, onToggleMode, onClose }: AuthF
                   placeholder="Your age (13+)"
                 />
               </div>
-            </>
+            </div>
           )}
 
           {mode === 'signup' && (
