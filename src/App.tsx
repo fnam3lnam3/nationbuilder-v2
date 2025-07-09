@@ -78,7 +78,6 @@ function App() {
           }
           setUser(null);
           setSubscription(null);
-          setSavedNations([]);
         }
       }
     );
