@@ -377,6 +377,7 @@ export const getNationById = async (nationId: string): Promise<SavedNation | nul
 
       .select('*')
     return {
+    }
     console.error('Error fetching nation by ID:', error);
     return null;
   }
