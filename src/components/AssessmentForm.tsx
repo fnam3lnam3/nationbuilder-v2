@@ -387,7 +387,7 @@ export default function AssessmentForm({ onComplete, onBack, initialData }: Asse
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-3">Education System (Check all that apply.)</label>
               <div className="grid grid-cols-2 gap-3">
-                {['Universal public', 'Private market','Apprenticeship under a master', 'Virtual-remote'].map(system => (
+                {['Universal public', 'Private','Apprenticeship under a master', 'Virtual-remote'].map(system => (
                   <label key={system} className="flex items-center space-x-2 cursor-pointer">
                     <input
                       type="checkbox"
