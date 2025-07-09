@@ -164,10 +164,13 @@ export default function LandingPage({
             </span>
           </h2>
           <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Lead a utopian leader. Rule a Dystopia. Colonize Mars. Compare your nations to others.
+            Make a Utopia. Rule a Dystopia.
           </p>
-          <p className="text-lg text-blue-100 mb-8 max-w-2xl mx-auto">
-            AI-powered platform that analyzes governments, economic frameworks, and generates a complete model constitution for your nation based upon historical patterns and optimal longevity.
+          <p className="text-xl text-blue-100 mb-4 max-w-2xl mx-auto">
+            Colonize Mars. Compare with others.
+          </p>
+          <p className="text-base text-blue-100 mb-8 max-w-2xl mx-auto">
+            AI GPT-powered analysis of government, economics, society, and environments that you define. Generates a model constitution for your nation. Uses human history and probability simulation to optimize your nation's success.
           </p>
           <button
             onClick={onStartAssessment}
