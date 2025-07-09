@@ -344,6 +344,8 @@ function App() {
             isExistingNation={!!currentNationId}
             defaultName={currentNationId ? savedNationsManager.savedNations.find(n => n.id === currentNationId)?.name || '' : ''}
           />
+        )
+        }
         />
       );
     
