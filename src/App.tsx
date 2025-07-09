@@ -321,32 +321,32 @@ function App() {
       }
       
       return (
-        <ResultsDashboard
-          assessmentData={assessmentData}
-          customPolicies={customPolicies}
-          onBack={handleBackToAssessment}
-          onStartNew={handleStartNewAssessment}
-          onPolicyUpdate={handlePolicyUpdate}
-          user={user}
-          onLogin={() => setShowAuth(true)}
-          onSaveNation={() => setShowSaveDialog(true)}
-          isExistingNation={!!currentNationId}
-        />
-        {showSaveDialog && (
-          <SaveNationDialog
+        <>
+          <ResultsDashboard
+            assessmentData={assessmentData}
+            customPolicies={customPolicies}
+            onBack={handleBackToAssessment}
+            onStartNew={handleStartNewAssessment}
+            onPolicyUpdate={handlePolicyUpdate}
             user={user}
-            onSave={handleSaveConfirm}
-            onLogin={() => {
-              setShowSaveDialog(false);
-              setShowAuth(true);
-            }}
-            onClose={handleSaveDialogClose}
+            onLogin={() => setShowAuth(true)}
+            onSaveNation={() => setShowSaveDialog(true)}
             isExistingNation={!!currentNationId}
-            defaultName={currentNationId ? savedNationsManager.savedNations.find(n => n.id === currentNationId)?.name || '' : ''}
           />
-        )
-        }
-        />
+          {showSaveDialog && (
+            <SaveNationDialog
+              user={user}
+              onSave={handleSaveConfirm}
+              onLogin={() => {
+                setShowSaveDialog(false);
+                setShowAuth(true);
+              }}
+              onClose={handleSaveDialogClose}
+              isExistingNation={!!currentNationId}
+              defaultName={currentNationId ? savedNationsManager.savedNations.find(n => n.id === currentNationId)?.name || '' : ''}
+            />
+          )}
+        </>
       );
     
     case 'saved-nations':
