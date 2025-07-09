@@ -231,11 +231,11 @@ export default function AssessmentForm({ onComplete, onBack, initialData }: Asse
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Religious Diversity (number of major religions): {formData.religiousDiversity}/10
+                Religious Diversity (number of major religions): {formData.religiousDiversity}
               </label>
               <input
                 type="range"
-                min="1"
+                min="0"
                 max="10"
                 value={formData.religiousDiversity}
                 onChange={(e) => handleInputChange('religiousDiversity', parseInt(e.target.value))}
@@ -324,7 +324,25 @@ export default function AssessmentForm({ onComplete, onBack, initialData }: Asse
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-3">Economic Model</label>
               <div className="space-y-2">
-                {['Free market', 'Regulated market', 'Communistic','Feudal', 'Barter', 'AI-managed', 'Mixed system', 'Uncertain. You pick!'].map(model => (
+                {[
+                  'Free market', 
+                  'Regulated market', 
+                  'Communistic',
+                  'Feudal', 
+                  'Barter', 
+                  'AI-managed', 
+                  'Mixed system',
+                  'Dirigisme',
+                  'Georgism',
+                  'Colonialism',
+                  'Corporatism',
+                  'Hydraulic despotism',
+                  'Distributism',
+                  'Potlach',
+                  'Social Credit',
+                  'Anarchy',
+                  'Uncertain. You pick!'
+                ].map(model => (
                   <label key={model} className="flex items-center space-x-2 cursor-pointer">
                     <input
                       type="radio"
@@ -343,7 +361,7 @@ export default function AssessmentForm({ onComplete, onBack, initialData }: Asse
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-3">Political Structure</label>
               <div className="space-y-2">
-                {['Direct democracy', 'Representative democracy', 'Socialism', 'Fascism', 'Populism', 'Monarchy', 'Constitutional monarchy','Theocracy', 'AI-run', 'Martial law/Anarchic', 'Uncertain. You recommend!'].map(structure => (
+                {['Direct democracy', 'Representative democracy', 'Socialism or Mutualism', 'Fascism', 'Populism', 'Monarchy', 'Constitutional monarchy','Theocracy', 'AI-run', 'Martial law/Anarchic', 'Uncertain. You recommend!'].map(structure => (
                   <label key={structure} className="flex items-center space-x-2 cursor-pointer">
                     <input
                       type="radio"

@@ -9,12 +9,12 @@ const supabase = createClient(
 
 interface AuthFormProps {
   mode: 'login' | 'signup';
-  onSuccess: (user: any) => void;
+  onLogin: (user: any) => void;
   onToggleMode: () => void;
   onClose: () => void;
 }
 
-export default function AuthForm({ mode, onSuccess, onToggleMode, onClose }: AuthFormProps) {
+export default function AuthForm({ mode, onLogin, onToggleMode, onClose }: AuthFormProps) {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -45,7 +45,7 @@ export default function AuthForm({ mode, onSuccess, onToggleMode, onClose }: Aut
 
         if (data.user) {
           setMessage({ type: 'success', text: 'Account created successfully!' });
-          onSuccess(data.user);
+          onLogin(data.user);
         }
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({
@@ -57,7 +57,7 @@ export default function AuthForm({ mode, onSuccess, onToggleMode, onClose }: Aut
 
         if (data.user) {
           setMessage({ type: 'success', text: 'Signed in successfully!' });
-          onSuccess(data.user);
+          onLogin(data.user);
         }
       }
     } catch (error: any) {

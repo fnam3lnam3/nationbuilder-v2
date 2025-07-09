@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Download, Share2, RefreshCw, ChevronLeft, BarChart3, PieChart, TrendingUp, Shield, Edit3, Save, LogIn } from 'lucide-react';
 import PolicyEditor from './PolicyEditor';
+import QuadrantChart from './QuadrantChart';
 import { AssessmentData, User, ResultsData } from '../types';
 
 interface ResultsDashboardProps {
@@ -504,6 +505,9 @@ export default function ResultsDashboard({
                 color="text-green-600"
               />
             </div>
+
+            {/* 4-Quadrant Chart */}
+            <QuadrantChart metrics={results.metrics} />
 
             {/* Call to Action for Policy Customization */}
             <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-6 border border-purple-200">
