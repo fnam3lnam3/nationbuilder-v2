@@ -144,26 +144,12 @@ export const getLeaderboardEntries = async (): Promise<{
       return { utopian: [], dystopian: [], martian: [] };
     }
 
-    // Get user information for each nation
-    const userIds = [...new Set((nations || []).map(n => n.user_id).filter(Boolean))];
-    const { data: users } = await supabase.auth.admin.listUsers();
-    const userMap = new Map();
-    
-    if (users?.users) {
-      users.users.forEach(user => {
-        userMap.set(user.id, user);
-      });
-    }
-
     // Filter and process nations
     const allEntries: LeaderboardEntry[] = (nations || [])
       .filter(nation => nation.user_id) // Only include nations with user_id
       .map(nation => {
       const assessmentData = nation.assessment_data;
-      const user = userMap.get(nation.user_id);
-      const username = user?.user_metadata?.username || 
-                      user?.email?.split('@')[0] || 
-                      'Anonymous';
+      const username = 'Anonymous'; // Frontend cannot access user data directly
       const utopianScore = calculateUtopianScore(assessmentData);
       const dystopianScore = calculateDystopianScore(assessmentData);
       const martianScore = calculateMartianScore(assessmentData);
@@ -214,10 +200,7 @@ export const getLeaderboardEntries = async (): Promise<{
     // Mars Pioneers: Include ALL non-Earth nations, sorted by Mars score
     const martian = marsEligibleNations
       .map(nation => {
-        const user = userMap.get(nation.user_id);
-        const username = user?.user_metadata?.username || 
-                        user?.email?.split('@')[0] || 
-                        'Anonymous';
+        const username = 'Anonymous'; // Frontend cannot access user data directly
         return {
           id: nation.id,
           name: nation.name,
@@ -258,26 +241,12 @@ export const getExpandedLeaderboardEntries = async (): Promise<{
       return { utopian: [], dystopian: [], martian: [] };
     }
 
-    // Get user information for each nation
-    const userIds = [...new Set((nations || []).map(n => n.user_id).filter(Boolean))];
-    const { data: users } = await supabase.auth.admin.listUsers();
-    const userMap = new Map();
-    
-    if (users?.users) {
-      users.users.forEach(user => {
-        userMap.set(user.id, user);
-      });
-    }
-
     // Filter and process nations
     const allEntries: LeaderboardEntry[] = (nations || [])
       .filter(nation => nation.user_id) // Only include nations with user_id
       .map(nation => {
       const assessmentData = nation.assessment_data;
-      const user = userMap.get(nation.user_id);
-      const username = user?.user_metadata?.username || 
-                      user?.email?.split('@')[0] || 
-                      'Anonymous';
+      const username = 'Anonymous'; // Frontend cannot access user data directly
       const utopianScore = calculateUtopianScore(assessmentData);
       const dystopianScore = calculateDystopianScore(assessmentData);
       const martianScore = calculateMartianScore(assessmentData);
@@ -328,10 +297,7 @@ export const getExpandedLeaderboardEntries = async (): Promise<{
     // Mars Pioneers: Include ALL non-Earth nations, sorted by Mars score, up to 30
     const martian = marsEligibleNations
       .map(nation => {
-        const user = userMap.get(nation.user_id);
-        const username = user?.user_metadata?.username || 
-                        user?.email?.split('@')[0] || 
-                        'Anonymous';
+        const username = 'Anonymous'; // Frontend cannot access user data directly
         return {
           id: nation.id,
           name: nation.name,
