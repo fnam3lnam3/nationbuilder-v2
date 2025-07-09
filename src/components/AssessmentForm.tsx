@@ -295,7 +295,7 @@ export default function AssessmentForm({ onComplete, onBack, initialData }: Asse
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-3">Social Organization and Clout Sources</label>
               <div className="space-y-2">
-                {['Individualism,' 'Communalism', 'Caste heritage', 'Merit-based', 'Wealth-based', 'Knowledge-based,' 'Seniority-based', 'Ethical acts-based'].map(org => (
+                {['Individualism', 'Communalism', 'Caste heritage', 'Merit-based', 'Wealth-based', 'Knowledge-based', 'Seniority-based', 'Ethical acts-based'].map(org => (
                   <label key={org} className="flex items-center space-x-2 cursor-pointer">
                     <input
                       type="radio"
