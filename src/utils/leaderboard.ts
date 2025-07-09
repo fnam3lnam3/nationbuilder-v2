@@ -130,8 +130,7 @@ export const getLeaderboardEntries = async (): Promise<{
   martian: LeaderboardEntry[];
 }> => {
   try {
-    // Fetch all public nations (we'll need to add a public flag to the schema)
-    // For now, we'll use a mock implementation since we need to modify the database
+    // Fetch all saved nations for leaderboard consideration
     const { data: nations, error } = await supabase
       .from('saved_nations')
       .select('*')
@@ -144,7 +143,8 @@ export const getLeaderboardEntries = async (): Promise<{
       return { utopian: [], dystopian: [], martian: [] };
     }
 
-    const entries: LeaderboardEntry[] = (nations || []).map(nation => {
+    // Filter and process nations
+    const allEntries: LeaderboardEntry[] = (nations || []).map(nation => {
       const assessmentData = nation.assessment_data;
       const utopianScore = calculateUtopianScore(assessmentData);
       const dystopianScore = calculateDystopianScore(assessmentData);
@@ -175,18 +175,34 @@ export const getLeaderboardEntries = async (): Promise<{
       };
     });
 
+    // Filter nations for Mars Pioneers: automatically include any non-Earth location
+    const marsEligibleNations = (nations || []).filter(nation => {
+      const location = nation.assessment_data.location;
+      return location && location !== 'Earth-based';
+    });
+
     // Sort and get top entries for each category
-    const utopian = entries
+    const utopian = allEntries
       .map(entry => ({ ...entry, score: calculateUtopianScore(entry.assessmentData) }))
       .sort((a, b) => b.score - a.score)
       .slice(0, 5);
 
-    const dystopian = entries
+    const dystopian = allEntries
       .map(entry => ({ ...entry, score: calculateDystopianScore(entry.assessmentData) }))
       .sort((a, b) => b.score - a.score)
       .slice(0, 5);
 
-    const martian = entries
+    // Mars Pioneers: Include ALL non-Earth nations, sorted by Mars score
+    const martian = marsEligibleNations
+      .map(nation => ({
+        id: nation.id,
+        name: nation.name,
+        score: calculateMartianScore(nation.assessment_data),
+        assessmentData: nation.assessment_data,
+        customPolicies: nation.custom_policies,
+        createdAt: new Date(nation.created_at),
+        category: 'martian' as const
+      }))
       .map(entry => ({ ...entry, score: calculateMartianScore(entry.assessmentData) }))
       .sort((a, b) => b.score - a.score)
       .slice(0, 5);
