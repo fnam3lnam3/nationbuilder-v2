@@ -115,6 +115,24 @@ export default function AssessmentForm({ onComplete, onBack, initialData }: Asse
                 Territory Size (km²): {formData.territory.toLocaleString()}
               </label>
               <p className="text-xs text-gray-500 mb-2">For reference, the USA has close to 9,150,000 sq. km.</p>
+              
+              {/* Direct input field */}
+              <div className="mb-3">
+                <input
+                  type="number"
+                  min="1"
+                  max="900000000"
+                  value={formData.territory}
+                  onChange={(e) => {
+                    const value = Math.max(1, Math.min(900000000, parseInt(e.target.value) || 1));
+                    handleInputChange('territory', value);
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
+                  placeholder="Enter territory size in km²"
+                />
+              </div>
+              
+              {/* Slider */}
               <input
                 type="range"
                 min="1"
