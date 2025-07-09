@@ -214,7 +214,7 @@ export default function AssessmentForm({ onComplete, onBack, initialData }: Asse
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-3">Location Type</label>
               <div className="space-y-2">
-                {['Earth-based', 'Space habitat', 'Underwater', 'Virtual/Digital', 'Off-world colony'].map(location => (
+                {['Earth-based','Underwater', 'Virtual/Digital', 'Planetary colony', 'Space station or space-traveling coommunity'].map(location => (
                   <label key={location} className="flex items-center space-x-2 cursor-pointer">
                     <input
                       type="radio"
@@ -233,7 +233,7 @@ export default function AssessmentForm({ onComplete, onBack, initialData }: Asse
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-3">Environmental Challenges</label>
               <div className="grid grid-cols-2 gap-3">
-                {['Water scarcity', 'Air quality issues', 'High radiation', 'Climate instability', 'Natural disasters', 'Limited space', 'Energy challenges', 'Food insecurity'].map(challenge => (
+                {['Polluted agricultural lands', 'Polluted urban lands','Water scarcity', 'Air quality issues', 'High radiation', 'Climate instability', 'Natural disasters', 'Limited space', 'Energy scarcity', 'harsh climate', 'Food insecurity'].map(challenge => (
                   <label key={challenge} className="flex items-center space-x-2 cursor-pointer">
                     <input
                       type="checkbox"
@@ -257,7 +257,7 @@ export default function AssessmentForm({ onComplete, onBack, initialData }: Asse
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-3">Economic Model</label>
               <div className="space-y-2">
-                {['Market-based', 'Planned economy', 'Resource-based', 'AI-managed economy', 'Mixed system', 'Uncertain. You recommend!'].map(model => (
+                {['Free market', 'Regulated market', 'Communistic','Feudal', 'Barter', 'AI-managed', 'Mixed system', 'Uncertain. You pick!'].map(model => (
                   <label key={model} className="flex items-center space-x-2 cursor-pointer">
                     <input
                       type="radio"
@@ -276,7 +276,7 @@ export default function AssessmentForm({ onComplete, onBack, initialData }: Asse
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-3">Political Structure</label>
               <div className="space-y-2">
-                {['Direct democracy', 'Representative democracy', 'Technocracy', 'AI-assisted governance', 'Local consensus-based', 'Constitutional monarchy', 'Uncertain. You recommend!'].map(structure => (
+                {['Direct democracy', 'Representative democracy', 'Socialism', 'Fascism', 'Populism', 'Monarchy', 'Constitutional monarchy','Theocracy', 'AI-run', 'Martial law/Anarchic', 'Uncertain. You recommend!'].map(structure => (
                   <label key={structure} className="flex items-center space-x-2 cursor-pointer">
                     <input
                       type="radio"
@@ -293,9 +293,9 @@ export default function AssessmentForm({ onComplete, onBack, initialData }: Asse
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">Social Organization</label>
+              <label className="block text-sm font-medium text-gray-700 mb-3">Social Organization and Clout Sources</label>
               <div className="space-y-2">
-                {['Individual-focused', 'Community Role-based', 'Lineage-based', 'Merit-based', 'Hybrid'].map(org => (
+                {['Individualism,' 'Communalism', 'Caste heritage', 'Merit-based', 'Wealth-based', 'Knowledge-based,' 'Seniority-based', 'Ethical acts-based'].map(org => (
                   <label key={org} className="flex items-center space-x-2 cursor-pointer">
                     <input
                       type="radio"
