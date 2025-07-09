@@ -1,8 +1,10 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
-import { ChevronRight, Globe, Scale, FileText, BarChart3, Users, Zap, LogIn, LogOut, BookOpen } from 'lucide-react';
+import { ChevronRight, Globe, Scale, FileText, BarChart3, Users, Zap, LogIn, LogOut, BookOpen, Crown } from 'lucide-react';
 import { User } from '../types';
 import LeaderboardSection from './LeaderboardSection';
+import ExpandedLeaderboard from './ExpandedLeaderboard';
+import SubscriptionPlans from './SubscriptionPlans';
 import { getNationById } from '../utils/leaderboard';
 import { analytics } from '../utils/analytics';
 
@@ -31,6 +33,8 @@ export default function LandingPage({
 }: LandingPageProps) {
   const [sharedNation, setSharedNation] = useState<any>(null);
   const [showSharedNation, setShowSharedNation] = useState(false);
+  const [showExpandedLeaderboard, setShowExpandedLeaderboard] = useState(false);
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
 
   useEffect(() => {
     // Check for shared nation in URL
@@ -58,6 +62,28 @@ export default function LandingPage({
     };
   }, [user]);
 
+  useEffect(() => {
+    // Listen for expanded leaderboard requests
+    const handleShowExpandedLeaderboard = () => {
+      if (!user) {
+        onLogin();
+        return;
+      }
+      
+      // Check if user has premium subscription
+      if (subscription?.subscription_status === 'active') {
+        setShowExpandedLeaderboard(true);
+      } else {
+        setShowSubscriptionModal(true);
+      }
+    };
+
+    window.addEventListener('showExpandedLeaderboard', handleShowExpandedLeaderboard);
+    
+    return () => {
+      window.removeEventListener('showExpandedLeaderboard', handleShowExpandedLeaderboard);
+    };
+  }, [user, subscription, onLogin]);
   const handleViewLeaderboardNation = async (nationId: string) => {
     try {
       const nation = await getNationById(nationId);

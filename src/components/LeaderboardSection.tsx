@@ -85,9 +85,14 @@ export default function LeaderboardSection({ onViewNation, user, onLogin }: Lead
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <span className="text-white/60 text-sm font-medium">#{index + 1}</span>
-                  <span className="text-white font-medium text-sm truncate max-w-[120px]">
-                    {entry.name}
-                  </span>
+                  <div className="flex flex-col">
+                    <span className="text-white font-medium text-sm truncate max-w-[120px]">
+                      {entry.name}
+                    </span>
+                    <span className="text-white/50 text-xs">
+                      by {entry.username}
+                    </span>
+                  </div>
                 </div>
                 <div className="flex items-center space-x-2">
                   <span className="text-white/80 text-sm font-bold">
@@ -104,6 +109,23 @@ export default function LeaderboardSection({ onViewNation, user, onLogin }: Lead
           ))}
         </div>
       )}
+      
+      {/* View Full Leaderboard Button */}
+      <div className="mt-4 pt-3 border-t border-white/20">
+        <button
+          onClick={() => {
+            if (!user) {
+              onLogin();
+              return;
+            }
+            // This will be handled by parent component
+            window.dispatchEvent(new CustomEvent('showExpandedLeaderboard'));
+          }}
+          className="w-full flex items-center justify-center space-x-2 bg-white/20 hover:bg-white/30 text-white px-3 py-2 rounded-lg text-sm transition-colors"
+        >
+          <span>View Full Leaderboard (Top 30)</span>
+        </button>
+      </div>
       
       {!user && entries.length > 0 && (
         <div className="mt-4 pt-3 border-t border-white/20">

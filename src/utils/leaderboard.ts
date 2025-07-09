@@ -9,6 +9,7 @@ const supabase = createClient(
 export interface LeaderboardEntry {
   id: string;
   name: string;
+  username: string;
   score: number;
   assessmentData: AssessmentData;
   customPolicies?: any;
@@ -130,10 +131,17 @@ export const getLeaderboardEntries = async (): Promise<{
   martian: LeaderboardEntry[];
 }> => {
   try {
-    // Fetch all saved nations for leaderboard consideration
+    // Fetch all saved nations with user information for leaderboard consideration
     const { data: nations, error } = await supabase
       .from('saved_nations')
-      .select('*')
+      .select(`
+        *,
+        users!inner(
+          id,
+          email,
+          raw_user_meta_data
+        )
+      `)
       .eq('is_temporary', false)
       .is('deleted_at', null)
       .limit(100); // Limit for performance
@@ -146,6 +154,9 @@ export const getLeaderboardEntries = async (): Promise<{
     // Filter and process nations
     const allEntries: LeaderboardEntry[] = (nations || []).map(nation => {
       const assessmentData = nation.assessment_data;
+      const username = nation.users?.raw_user_meta_data?.username || 
+                      nation.users?.email?.split('@')[0] || 
+                      'Anonymous';
       const utopianScore = calculateUtopianScore(assessmentData);
       const dystopianScore = calculateDystopianScore(assessmentData);
       const martianScore = calculateMartianScore(assessmentData);
@@ -167,6 +178,7 @@ export const getLeaderboardEntries = async (): Promise<{
       return {
         id: nation.id,
         name: nation.name,
+        username,
         score,
         assessmentData,
         customPolicies: nation.custom_policies,
@@ -195,7 +207,11 @@ export const getLeaderboardEntries = async (): Promise<{
     // Mars Pioneers: Include ALL non-Earth nations, sorted by Mars score
     const martian = marsEligibleNations
       .map(nation => ({
+        const username = nation.users?.raw_user_meta_data?.username || 
+                        nation.users?.email?.split('@')[0] || 
+                        'Anonymous';
         id: nation.id,
+          username,
         name: nation.name,
         score: calculateMartianScore(nation.assessment_data),
         assessmentData: nation.assessment_data,
@@ -203,13 +219,118 @@ export const getLeaderboardEntries = async (): Promise<{
         createdAt: new Date(nation.created_at),
         category: 'martian' as const
       }))
-      .map(entry => ({ ...entry, score: calculateMartianScore(entry.assessmentData) }))
       .sort((a, b) => b.score - a.score)
       .slice(0, 5);
 
     return { utopian, dystopian, martian };
   } catch (error) {
     console.error('Error generating leaderboard:', error);
+    return { utopian: [], dystopian: [], martian: [] };
+  }
+};
+
+export const getExpandedLeaderboardEntries = async (): Promise<{
+  utopian: LeaderboardEntry[];
+  dystopian: LeaderboardEntry[];
+  martian: LeaderboardEntry[];
+}> => {
+  try {
+    // Fetch all saved nations with user information for expanded leaderboard
+    const { data: nations, error } = await supabase
+      .from('saved_nations')
+      .select(`
+        *,
+        users!inner(
+          id,
+          email,
+          raw_user_meta_data
+        )
+      `)
+      .eq('is_temporary', false)
+      .is('deleted_at', null)
+      .limit(200); // Higher limit for expanded view
+
+    if (error) {
+      console.error('Error fetching nations for expanded leaderboard:', error);
+      return { utopian: [], dystopian: [], martian: [] };
+    }
+
+    // Filter and process nations
+    const allEntries: LeaderboardEntry[] = (nations || []).map(nation => {
+      const assessmentData = nation.assessment_data;
+      const username = nation.users?.raw_user_meta_data?.username || 
+                      nation.users?.email?.split('@')[0] || 
+                      'Anonymous';
+      const utopianScore = calculateUtopianScore(assessmentData);
+      const dystopianScore = calculateDystopianScore(assessmentData);
+      const martianScore = calculateMartianScore(assessmentData);
+      
+      // Determine primary category based on highest score
+      let category: 'utopian' | 'dystopian' | 'martian' = 'utopian';
+      let score = utopianScore;
+      
+      if (dystopianScore > score) {
+        category = 'dystopian';
+        score = dystopianScore;
+      }
+      
+      if (martianScore > score) {
+        category = 'martian';
+        score = martianScore;
+      }
+
+      return {
+        id: nation.id,
+        name: nation.name,
+        username,
+        score,
+        assessmentData,
+        customPolicies: nation.custom_policies,
+        createdAt: new Date(nation.created_at),
+        category
+      };
+    });
+
+    // Filter nations for Mars Pioneers: automatically include any non-Earth location
+    const marsEligibleNations = (nations || []).filter(nation => {
+      const location = nation.assessment_data.location;
+      return location && location !== 'Earth-based';
+    });
+
+    // Sort and get top 30 entries for each category
+    const utopian = allEntries
+      .map(entry => ({ ...entry, score: calculateUtopianScore(entry.assessmentData) }))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 30);
+
+    const dystopian = allEntries
+      .map(entry => ({ ...entry, score: calculateDystopianScore(entry.assessmentData) }))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 30);
+
+    // Mars Pioneers: Include ALL non-Earth nations, sorted by Mars score, up to 30
+    const martian = marsEligibleNations
+      .map(nation => {
+        const username = nation.users?.raw_user_meta_data?.username || 
+                        nation.users?.email?.split('@')[0] || 
+                        'Anonymous';
+        return {
+          id: nation.id,
+          name: nation.name,
+          username,
+          score: calculateMartianScore(nation.assessment_data),
+          assessmentData: nation.assessment_data,
+          customPolicies: nation.custom_policies,
+          createdAt: new Date(nation.created_at),
+          category: 'martian' as const
+        };
+      })
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 30);
+
+    return { utopian, dystopian, martian };
+  } catch (error) {
+    console.error('Error generating expanded leaderboard:', error);
     return { utopian: [], dystopian: [], martian: [] };
   }
 };
