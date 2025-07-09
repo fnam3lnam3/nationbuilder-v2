@@ -181,7 +181,7 @@ export default function LandingPage({
             </a>
           </p>
           <p className="text-base text-blue-100 mb-8 max-w-2xl mx-auto">
-            AI GPT-powered analysis of government, economics, society, and environments that you define. Generates a model constitution for your nation. Uses human history and probability simulation to optimize your nation's success.
+            An GPT AI-powered app for building a Nation with its own government, economics, society, and environment that you define. Download a model constitution for your nation. The LLM pulls from human history and probability simulation to score your build and optimize your nation's success. Compete with other Nationbuilders.
           </p>
           <button
             onClick={onStartAssessment}
