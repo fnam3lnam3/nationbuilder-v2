@@ -136,7 +136,7 @@ export const getLeaderboardEntries = async (): Promise<{
       .from('saved_nations')
       .select(`
         *,
-        users!inner(
+        user_id!inner(
           id,
           email,
           raw_user_meta_data
@@ -154,8 +154,8 @@ export const getLeaderboardEntries = async (): Promise<{
     // Filter and process nations
     const allEntries: LeaderboardEntry[] = (nations || []).map(nation => {
       const assessmentData = nation.assessment_data;
-      const username = nation.users?.raw_user_meta_data?.username || 
-                      nation.users?.email?.split('@')[0] || 
+      const username = nation.user_id?.raw_user_meta_data?.username || 
+                      nation.user_id?.email?.split('@')[0] || 
                       'Anonymous';
       const utopianScore = calculateUtopianScore(assessmentData);
       const dystopianScore = calculateDystopianScore(assessmentData);
@@ -207,8 +207,8 @@ export const getLeaderboardEntries = async (): Promise<{
     // Mars Pioneers: Include ALL non-Earth nations, sorted by Mars score
     const martian = marsEligibleNations
       .map(nation => {
-        const username = nation.users?.raw_user_meta_data?.username || 
-                        nation.users?.email?.split('@')[0] || 
+        const username = nation.user_id?.raw_user_meta_data?.username || 
+                        nation.user_id?.email?.split('@')[0] || 
                         'Anonymous';
         return {
           id: nation.id,
@@ -242,7 +242,7 @@ export const getExpandedLeaderboardEntries = async (): Promise<{
       .from('saved_nations')
       .select(`
         *,
-        users!inner(
+        user_id!inner(
           id,
           email,
           raw_user_meta_data
@@ -260,8 +260,8 @@ export const getExpandedLeaderboardEntries = async (): Promise<{
     // Filter and process nations
     const allEntries: LeaderboardEntry[] = (nations || []).map(nation => {
       const assessmentData = nation.assessment_data;
-      const username = nation.users?.raw_user_meta_data?.username || 
-                      nation.users?.email?.split('@')[0] || 
+      const username = nation.user_id?.raw_user_meta_data?.username || 
+                      nation.user_id?.email?.split('@')[0] || 
                       'Anonymous';
       const utopianScore = calculateUtopianScore(assessmentData);
       const dystopianScore = calculateDystopianScore(assessmentData);
@@ -313,8 +313,8 @@ export const getExpandedLeaderboardEntries = async (): Promise<{
     // Mars Pioneers: Include ALL non-Earth nations, sorted by Mars score, up to 30
     const martian = marsEligibleNations
       .map(nation => {
-        const username = nation.users?.raw_user_meta_data?.username || 
-                        nation.users?.email?.split('@')[0] || 
+        const username = nation.user_id?.raw_user_meta_data?.username || 
+                        nation.user_id?.email?.split('@')[0] || 
                         'Anonymous';
         return {
           id: nation.id,
