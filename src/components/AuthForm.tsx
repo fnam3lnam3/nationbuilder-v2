@@ -162,7 +162,7 @@ export default function AuthForm({ mode, onLogin, onToggleMode, onClose }: AuthF
           )}
 
           {mode === 'signup' && (
-            <>
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Username
               </label>
