@@ -143,7 +143,7 @@ export default function AuthForm({ mode, onLogin, onToggleMode, onClose }: AuthF
                 </div>
               </div>
 
-              <div>
+              <div className="mt-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Age
                 </label>
