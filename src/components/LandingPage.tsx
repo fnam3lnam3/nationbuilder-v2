@@ -164,15 +164,16 @@ export default function LandingPage({
             </span>
           </h2>
           <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            AI-powered platform that analyzes governance systems, recommends economic frameworks, 
-            and generates complete constitutional documents based on historical patterns and optimal outcomes.
+            Lead a utopian leader. Rule a Dystopia. Colonize Mars. Compare your nations to others.
+          </p>
+          <p className="text-lg text-blue-100 mb-8 max-w-2xl mx-auto">
+            AI-powered platform that analyzes governments, economic frameworks, and generates a complete model constitution for your nation based upon historical patterns and optimal longevity.
           </p>
           <button
             onClick={onStartAssessment}
-            className="bg-gradient-to-r from-yellow-400 to-yellow-600 hover:from-yellow-500 hover:to-yellow-700 text-yellow-900 font-bold py-6 px-12 rounded-xl transform hover:scale-105 transition-all duration-200 shadow-2xl flex items-center space-x-3 mx-auto text-lg border-2 border-yellow-300"
+            className="bg-gradient-to-r from-yellow-400 to-yellow-600 hover:from-yellow-500 hover:to-yellow-700 text-yellow-900 font-bold py-6 px-12 rounded-xl transform hover:scale-105 transition-all duration-200 shadow-2xl mx-auto text-2xl border-2 border-yellow-300"
           >
-            <span>Build Your Nation</span>
-            <ChevronRight className="h-5 w-5" />
+            Build Your Nation
           </button>
           
           {user && (
