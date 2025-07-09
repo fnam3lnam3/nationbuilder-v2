@@ -98,16 +98,21 @@ export default function AssessmentForm({ onComplete, onBack, initialData }: Asse
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Territory Size (km²): {formData.territory}
+                Territory Size (km²): {formData.territory.toLocaleString()}
               </label>
+              <p className="text-xs text-gray-500 mb-2">For reference, the USA has close to 9,150,000 sq. km.</p>
               <input
                 type="range"
                 min="1"
-                max="100000000"
+                max="900000000"
                 value={formData.territory}
                 onChange={(e) => handleInputChange('territory', parseInt(e.target.value))}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
               />
+              <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <span>1 km²</span>
+                <span>900M km²</span>
+              </div>
             </div>
 
             <div>
