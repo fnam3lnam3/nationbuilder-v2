@@ -191,7 +191,7 @@ export default function LandingPage({
           </button>
           
           {user && (
-            <p className="text-blue-200 mt-4 text-sm">
+            <p className="text-blue-200 mt-2 text-sm">
               You have {savedNationsCount}/{maxNations} saved nations. Customize policies after analysis.
               {subscription?.subscription_status !== 'active' && (
                 <button
