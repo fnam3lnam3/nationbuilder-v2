@@ -362,6 +362,69 @@ export default function LandingPage({
         </div>
       </footer>
 
+      {/* Expanded Leaderboard Modal */}
+      {showExpandedLeaderboard && (
+        <ExpandedLeaderboard
+          onClose={() => setShowExpandedLeaderboard(false)}
+          onViewNation={handleViewLeaderboardNation}
+          user={user}
+          onLogin={onLogin}
+          subscription={subscription}
+        />
+      )}
+
+      {/* Premium Subscription Modal */}
+      {showSubscriptionModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
+            <div className="text-center mb-6">
+              <Crown className="h-12 w-12 text-blue-600 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                Premium Feature
+              </h3>
+              <p className="text-gray-600">
+                View the full leaderboard with up to 30 ranked nations in each category, 
+                plus unlock the ability to save up to 30 nations.
+              </p>
+            </div>
+
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 mb-6 border border-blue-200">
+              <div className="flex items-center justify-center space-x-2 mb-2">
+                <Crown className="h-5 w-5 text-blue-600" />
+                <span className="font-semibold text-blue-900">Nationleader Subscription</span>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-600 mb-1">$2.99/month</div>
+                <ul className="text-sm text-blue-700 space-y-1">
+                  <li>• View full leaderboards (top 30 in each category)</li>
+                  <li>• Save up to 30 nations (vs 5 for free users)</li>
+                  <li>• Early access to new features</li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <button
+                onClick={() => {
+                  setShowSubscriptionModal(false);
+                  onShowSubscriptionPlans();
+                }}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+              >
+                Upgrade to Nationleader
+              </button>
+              
+              <button
+                onClick={() => setShowSubscriptionModal(false)}
+                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-lg transition-colors"
+              >
+                Maybe Later
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Shared Nation Modal */}
       {showSharedNation && sharedNation && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
