@@ -1,5 +1,7 @@
 import React from 'react';
+import { useState } from 'react';
 import { ChevronRight, Globe, Scale, FileText, BarChart3, Users, Zap, LogIn, LogOut, BookOpen } from 'lucide-react';
+import ServerStorageTest from './ServerStorageTest';
 import { User } from '../types';
 
 interface LandingPageProps {
@@ -25,6 +27,8 @@ export default function LandingPage({
   savedNationsCount = 0,
   maxNations = 5
 }: LandingPageProps) {
+  const [showServerTest, setShowServerTest] = useState(false);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900">
       {/* Header */}
@@ -38,6 +42,12 @@ export default function LandingPage({
           <div className="flex items-center space-x-4">
             {user ? (
               <>
+                <button
+                  onClick={() => setShowServerTest(true)}
+                  className="text-blue-100 hover:text-white text-sm transition-colors"
+                >
+                  DB Test
+                </button>
                 <div className="flex items-center space-x-2">
                   <span className="text-blue-100">Welcome, {user.username}</span>
                   {subscription?.subscription_status === 'active' && (
@@ -201,6 +211,11 @@ export default function LandingPage({
           </p>
         </div>
       </footer>
+
+      {/* Server Storage Test Modal */}
+      {showServerTest && (
+        <ServerStorageTest onClose={() => setShowServerTest(false)} />
+      )}
     </div>
   );
 }
