@@ -180,7 +180,7 @@ export default function LandingPage({
               Compare with others.
             </a>
           </p>
-          <p className="text-base text-blue-100 mb-8 max-w-2xl mx-auto">
+          <p className="text-base text-blue-100 mb-4 max-w-2xl mx-auto">
             An GPT AI-powered app for building a Nation with its own government, economics, society, and environment that you define. Download a model constitution for your nation. An LLM pulls from human history and simulations to assess and optimize your nation's success.
           </p>
           <button
@@ -209,7 +209,7 @@ export default function LandingPage({
       {/* Features Grid */}
       <section className="px-6 py-16">
         <div className="max-w-6xl mx-auto">
-          <h3 className="text-3xl font-bold text-white text-center mb-12">
+          <h3 className="text-3xl font-bold text-white text-center mb-6">
             Comprehensive Governance Analysis
           </h3>
           <div className="grid md:grid-cols-3 gap-8">
