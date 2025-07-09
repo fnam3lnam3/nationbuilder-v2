@@ -12,6 +12,7 @@ import SavedNations from './components/SavedNations';
 import SaveNationDialog from './components/SaveNationDialog';
 import UserProfile from './components/UserProfile';
 import { AssessmentData, User, SavedNation } from './types';
+import { getArchetypeTemplate } from './utils/archetypeTemplates';
 import { analytics } from './utils/analytics';
 import './utils/populateLeaderboards';
 
@@ -108,6 +109,11 @@ function App() {
     setCurrentState('assessment');
   };
 
+  const handleStartArchetypeAssessment = (archetype: 'utopia' | 'dystopia' | 'mars') => {
+    const template = getArchetypeTemplate(archetype);
+    setAssessmentData(template.assessmentData);
+    setCurrentState('assessment');
+  };
   const handleAssessmentComplete = (data: AssessmentData) => {
     console.log('App.tsx - Assessment completed with data:', data);
     console.log('App.tsx - Data validation check:', {
@@ -289,6 +295,7 @@ function App() {
         <>
           <LandingPage 
             onStartAssessment={handleStartAssessment}
+            onStartArchetypeAssessment={handleStartArchetypeAssessment}
             user={user}
             onLogin={() => setShowAuth(true)}
             onLogout={handleLogout}
@@ -402,6 +409,7 @@ function App() {
           onViewSavedNations={handleViewSavedNations}
           onShowSubscriptionPlans={handleShowSubscriptionPlans}
           subscription={subscription}
+          onStartArchetypeAssessment={handleStartArchetypeAssessment}
           savedNationsCount={savedNationsManager.savedNations.length}
           maxNations={savedNationsManager.getMaxNations()}
         />

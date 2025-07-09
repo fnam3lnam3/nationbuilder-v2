@@ -10,6 +10,7 @@ import { analytics } from '../utils/analytics';
 
 interface LandingPageProps {
   onStartAssessment: () => void;
+  onStartArchetypeAssessment: (archetype: 'utopia' | 'dystopia' | 'mars') => void;
   user?: User | null;
   onLogin: () => void;
   onLogout: () => void;
@@ -22,6 +23,7 @@ interface LandingPageProps {
 
 export default function LandingPage({ 
   onStartAssessment, 
+  onStartArchetypeAssessment,
   user, 
   onLogin, 
   onLogout, 
@@ -249,7 +251,10 @@ export default function LandingPage({
           </h3>
           <div className="grid md:grid-cols-3 gap-8">
             {/* Utopia Nation */}
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl overflow-hidden border border-white/20 hover:transform hover:scale-105 transition-all duration-300">
+            <div 
+              className="bg-white/10 backdrop-blur-sm rounded-xl overflow-hidden border border-white/20 hover:transform hover:scale-105 transition-all duration-300 cursor-pointer group"
+              onClick={() => onStartArchetypeAssessment('utopia')}
+            >
               <div className="relative h-64 overflow-hidden">
                 <img 
                   src="https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop"
@@ -258,22 +263,28 @@ export default function LandingPage({
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
                 <div className="absolute bottom-4 left-4">
-                  <span className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                  <span className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-semibold group-hover:bg-green-400 transition-colors">
                     Utopia
                   </span>
                 </div>
               </div>
               <div className="p-6">
-                <h4 className="text-xl font-semibold text-white mb-3">Perfect Harmony</h4>
+                <h4 className="text-xl font-semibold text-white mb-3 group-hover:text-green-200 transition-colors">Perfect Harmony</h4>
                 <p className="text-blue-100 text-sm leading-relaxed">
-                  Pefect your advanced sustainable nation where technology serves humanity, resources are abundant, 
-                  and citizens thrive in peaceful, prosperous communities with fair and frugal governance.
+                  Perfect your advanced sustainable nation based on modern Denmark where technology serves humanity, 
+                  resources are abundant, and citizens thrive in peaceful, prosperous communities.
                 </p>
+                <div className="mt-3 text-xs text-green-200 opacity-0 group-hover:opacity-100 transition-opacity">
+                  Click to start with Danish social democracy template →
+                </div>
               </div>
             </div>
 
             {/* Dystopia Nation */}
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl overflow-hidden border border-white/20 hover:transform hover:scale-105 transition-all duration-300">
+            <div 
+              className="bg-white/10 backdrop-blur-sm rounded-xl overflow-hidden border border-white/20 hover:transform hover:scale-105 transition-all duration-300 cursor-pointer group"
+              onClick={() => onStartArchetypeAssessment('dystopia')}
+            >
               <div className="relative h-64 overflow-hidden">
                 <img 
                   src="https://images.pexels.com/photos/2448749/pexels-photo-2448749.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop"
@@ -282,21 +293,28 @@ export default function LandingPage({
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
                 <div className="absolute bottom-4 left-4">
-                  <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                  <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold group-hover:bg-red-400 transition-colors">
                     Dystopia
                   </span>
                 </div>
               </div>
               <div className="p-6">
-                <h4 className="text-xl font-semibold text-white mb-3">Cautionary Future</h4>
+                <h4 className="text-xl font-semibold text-white mb-3 group-hover:text-red-200 transition-colors">Cautionary Future</h4>
                 <p className="text-blue-100 text-sm leading-relaxed">
-                  Launch an authoritarian surveillance state where freedom is restricted and resources are metered, but citizens have greater reliance on government and each other as most needs are met.
+                  Experience harsh authoritarian rule based on 1600s Siberian exile colonies where survival is paramount, 
+                  freedom is restricted, and citizens endure under martial law conditions.
                 </p>
+                <div className="mt-3 text-xs text-red-200 opacity-0 group-hover:opacity-100 transition-opacity">
+                  Click to start with Siberian exile colony template →
+                </div>
               </div>
             </div>
 
             {/* Mars Colony */}
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl overflow-hidden border border-white/20 hover:transform hover:scale-105 transition-all duration-300">
+            <div 
+              className="bg-white/10 backdrop-blur-sm rounded-xl overflow-hidden border border-white/20 hover:transform hover:scale-105 transition-all duration-300 cursor-pointer group"
+              onClick={() => onStartArchetypeAssessment('mars')}
+            >
               <div className="relative h-64 overflow-hidden">
                 <img 
                   src="https://images.pexels.com/photos/586063/pexels-photo-586063.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop"
@@ -305,17 +323,20 @@ export default function LandingPage({
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
                 <div className="absolute bottom-4 left-4">
-                  <span className="bg-orange-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                  <span className="bg-orange-500 text-white px-3 py-1 rounded-full text-sm font-semibold group-hover:bg-orange-400 transition-colors">
                     Mars
                   </span>
                 </div>
               </div>
               <div className="p-6">
-                <h4 className="text-xl font-semibold text-white mb-3">New Frontiers</h4>
+                <h4 className="text-xl font-semibold text-white mb-3 group-hover:text-orange-200 transition-colors">New Frontiers</h4>
                 <p className="text-blue-100 text-sm leading-relaxed">
-                  Build a pioneering colony on Mars where humanity adapts to extreme environments, develops 
-                  innovative governance for space habitats, and creates a self-sustaining society.
+                  Build a pioneering space colony combining colonial Australian governance with International Space Station 
+                  constraints - extreme resource limits, small population, and survival-focused decision making.
                 </p>
+                <div className="mt-3 text-xs text-orange-200 opacity-0 group-hover:opacity-100 transition-opacity">
+                  Click to start with colonial Australia + ISS template →
+                </div>
               </div>
             </div>
           </div>
