@@ -131,16 +131,18 @@ export const getLeaderboardEntries = async (): Promise<{
   martian: LeaderboardEntry[];
 }> => {
   try {
-    // Fetch all saved nations with public profile information for leaderboard
+    // Fetch all saved nations with public profile information through users table
     const { data: nations, error } = await supabase
       .from('saved_nations')
       .select(`
         *,
-        public_profiles!inner(username, display_name, is_leaderboard_visible)
+        users!inner(
+          public_profiles!inner(username, display_name, is_leaderboard_visible)
+        )
       `)
       .eq('is_temporary', false)
       .is('deleted_at', null)
-      .eq('public_profiles.is_leaderboard_visible', true)
+      .eq('users.public_profiles.is_leaderboard_visible', true)
       .limit(100); // Limit for performance
 
     if (error) {
@@ -152,7 +154,7 @@ export const getLeaderboardEntries = async (): Promise<{
     const allEntries: LeaderboardEntry[] = (nations || [])
       .map(nation => {
       const assessmentData = nation.assessment_data;
-      const profile = nation.public_profiles;
+      const profile = nation.users?.public_profiles;
       const username = profile?.display_name || profile?.username || 'Anonymous';
       const utopianScore = calculateUtopianScore(assessmentData);
       const dystopianScore = calculateDystopianScore(assessmentData);
@@ -187,7 +189,7 @@ export const getLeaderboardEntries = async (): Promise<{
     // Filter nations for Mars Pioneers: include any non-Earth location with visible profiles
     const marsEligibleNations = (nations || []).filter(nation => {
       const location = nation.assessment_data.location;
-      return location && location !== 'Earth-based' && nation.public_profiles?.is_leaderboard_visible;
+      return location && location !== 'Earth-based' && nation.users?.public_profiles?.is_leaderboard_visible;
     });
 
     // Sort and get top entries for each category
@@ -204,7 +206,7 @@ export const getLeaderboardEntries = async (): Promise<{
     // Mars Pioneers: Include ALL non-Earth nations, sorted by Mars score
     const martian = marsEligibleNations
       .map(nation => {
-        const profile = nation.public_profiles;
+        const profile = nation.users?.public_profiles;
         const username = profile?.display_name || profile?.username || 'Anonymous';
         return {
           id: nation.id,
@@ -233,16 +235,18 @@ export const getExpandedLeaderboardEntries = async (): Promise<{
   martian: LeaderboardEntry[];
 }> => {
   try {
-    // Fetch all saved nations with public profile information for expanded leaderboard
+    // Fetch all saved nations with public profile information through users table for expanded leaderboard
     const { data: nations, error } = await supabase
       .from('saved_nations')
       .select(`
         *,
-        public_profiles!inner(username, display_name, is_leaderboard_visible)
+        users!inner(
+          public_profiles!inner(username, display_name, is_leaderboard_visible)
+        )
       `)
       .eq('is_temporary', false)
       .is('deleted_at', null)
-      .eq('public_profiles.is_leaderboard_visible', true)
+      .eq('users.public_profiles.is_leaderboard_visible', true)
       .limit(200); // Higher limit for expanded view
 
     if (error) {
@@ -254,7 +258,7 @@ export const getExpandedLeaderboardEntries = async (): Promise<{
     const allEntries: LeaderboardEntry[] = (nations || [])
       .map(nation => {
       const assessmentData = nation.assessment_data;
-      const profile = nation.public_profiles;
+      const profile = nation.users?.public_profiles;
       const username = profile?.display_name || profile?.username || 'Anonymous';
       const utopianScore = calculateUtopianScore(assessmentData);
       const dystopianScore = calculateDystopianScore(assessmentData);
@@ -289,7 +293,7 @@ export const getExpandedLeaderboardEntries = async (): Promise<{
     // Filter nations for Mars Pioneers: include any non-Earth location with visible profiles
     const marsEligibleNations = (nations || []).filter(nation => {
       const location = nation.assessment_data.location;
-      return location && location !== 'Earth-based' && nation.public_profiles?.is_leaderboard_visible;
+      return location && location !== 'Earth-based' && nation.users?.public_profiles?.is_leaderboard_visible;
     });
 
     // Sort and get top 30 entries for each category
@@ -306,7 +310,7 @@ export const getExpandedLeaderboardEntries = async (): Promise<{
     // Mars Pioneers: Include ALL non-Earth nations, sorted by Mars score, up to 30
     const martian = marsEligibleNations
       .map(nation => {
-        const profile = nation.public_profiles;
+        const profile = nation.users?.public_profiles;
         const username = profile?.display_name || profile?.username || 'Anonymous';
         return {
           id: nation.id,
@@ -350,13 +354,15 @@ export const checkLeaderboardVisibility = async (nationId: string): Promise<bool
     const { data, error } = await supabase
       .from('saved_nations')
       .select(`
-        public_profiles!inner(is_leaderboard_visible)
+        users!inner(
+          public_profiles!inner(is_leaderboard_visible)
+        )
       `)
       .eq('id', nationId)
       .single();
 
     if (error) return false;
-    return data?.public_profiles?.is_leaderboard_visible || false;
+    return data?.users?.public_profiles?.is_leaderboard_visible || false;
   } catch (error) {
     console.error('Error checking leaderboard visibility:', error);
     return false;
