@@ -314,6 +314,8 @@ export default function ResultsDashboard({
   };
 
   const results = generateResults(assessmentData);
+  
+  console.log('Generated results:', results);
 
   const downloadConstitution = () => {
     const content = `CONSTITUTION\n\nPREAMBLE\n${results.constitution.preamble}\n\n${results.constitution.articles.map((article, index) => `ARTICLE ${index + 1}: ${article.title.toUpperCase()}\n${article.content}`).join('\n\n')}\n\nADOPTION MECHANISM\n${results.constitution.adoptionMechanism}\n\nAMENDMENT PROCESS\n${results.constitution.amendmentProcess}\n\nLAWMAKING PROCESS\n${results.constitution.lawmakingProcess}\n\nSIGNATURE BLOCK\n${results.constitution.signatureBlock.map(role => `_________________________\n${role}`).join('\n\n')}`;

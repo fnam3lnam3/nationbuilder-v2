@@ -106,6 +106,14 @@ function App() {
 
   const handleAssessmentComplete = (data: AssessmentData) => {
     console.log('Assessment completed with data:', data);
+    
+    // Validate that we have the required data
+    if (!data || !data.location || !data.economicModel || !data.politicalStructure || !data.socialOrganization) {
+      console.error('Invalid assessment data received:', data);
+      alert('Assessment data is incomplete. Please try again.');
+      return;
+    }
+    
     setAssessmentData(data);
     setCurrentState('results');
   };

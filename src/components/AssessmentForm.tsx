@@ -341,6 +341,23 @@ export default function AssessmentForm({ onComplete, onBack, initialData }: Asse
             </div>
 
             <div>
+              <label className="block text-sm font-medium text-gray-700 mb-3">Security & Defense Systems (Check all that apply.)</label>
+              <div className="grid grid-cols-2 gap-3">
+                {['Professional military', 'Citizen militia', 'Police force', 'Border security', 'Cybersecurity', 'Intelligence services', 'Emergency response'].map(security => (
+                  <label key={security} className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.security.includes(security)}
+                      onChange={() => handleArrayToggle('security', security)}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">{security}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-3">Healthcare System & Access to Services (Check all that apply.)</label>
               <div className="grid grid-cols-2 gap-3">
                 {['Universal access', 'Privatized payment', 'Preventive care', 'Mental-health services', 'Emergency response', 'Research-based medicine', 'Cultural medicine'].map(health => (
@@ -352,6 +369,23 @@ export default function AssessmentForm({ onComplete, onBack, initialData }: Asse
                       className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
                     <span className="text-sm text-gray-700">{health}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-3">Resource Management Systems (Check all that apply.)</label>
+              <div className="grid grid-cols-2 gap-3">
+                {['Water management', 'Energy distribution', 'Food security', 'Waste management', 'Natural resource extraction', 'Environmental protection', 'Infrastructure maintenance'].map(resource => (
+                  <label key={resource} className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.resourceManagement.includes(resource)}
+                      onChange={() => handleArrayToggle('resourceManagement', resource)}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">{resource}</span>
                   </label>
                 ))}
               </div>
