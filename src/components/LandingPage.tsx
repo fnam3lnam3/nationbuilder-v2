@@ -166,7 +166,7 @@ export default function LandingPage({
           <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
             Make a Utopia. Rule a Dystopia.
           </p>
-          <p className="text-xl text-blue-100 mb-4 max-w-2xl mx-auto">
+          <p className="text-xl text-blue-100 mb-4 max-w-2xl mx-auto -mt-4">
             Colonize Mars. Compare with others.
           </p>
           <p className="text-base text-blue-100 mb-8 max-w-2xl mx-auto">
