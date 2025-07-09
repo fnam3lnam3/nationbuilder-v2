@@ -154,6 +154,88 @@ export default function LandingPage({
         </div>
       </section>
 
+      {/* Nation Scenarios Showcase */}
+      <section className="px-6 py-16">
+        <div className="max-w-6xl mx-auto">
+          <h3 className="text-3xl font-bold text-white text-center mb-12">
+            Explore Different Nation Scenarios
+          </h3>
+          <div className="grid md:grid-cols-3 gap-8">
+            {/* Utopia Nation */}
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl overflow-hidden border border-white/20 hover:transform hover:scale-105 transition-all duration-300">
+              <div className="relative h-64 overflow-hidden">
+                <img 
+                  src="https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop"
+                  alt="People in a utopian society with advanced sustainable technology and happy communities"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                <div className="absolute bottom-4 left-4">
+                  <span className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                    Utopia
+                  </span>
+                </div>
+              </div>
+              <div className="p-6">
+                <h4 className="text-xl font-semibold text-white mb-3">Perfect Harmony</h4>
+                <p className="text-blue-100 text-sm leading-relaxed">
+                  Advanced sustainable cities where technology serves humanity, resources are abundant, 
+                  and citizens thrive in peaceful, prosperous communities with perfect governance systems.
+                </p>
+              </div>
+            </div>
+
+            {/* Dystopia Nation */}
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl overflow-hidden border border-white/20 hover:transform hover:scale-105 transition-all duration-300">
+              <div className="relative h-64 overflow-hidden">
+                <img 
+                  src="https://images.pexels.com/photos/2448749/pexels-photo-2448749.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop"
+                  alt="People in a dystopian future with urban decay, surveillance, and authoritarian control"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                <div className="absolute bottom-4 left-4">
+                  <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                    Dystopia
+                  </span>
+                </div>
+              </div>
+              <div className="p-6">
+                <h4 className="text-xl font-semibold text-white mb-3">Cautionary Future</h4>
+                <p className="text-blue-100 text-sm leading-relaxed">
+                  Authoritarian surveillance states where freedom is restricted, resources are scarce, 
+                  and citizens struggle under oppressive systems that prioritize control over human welfare.
+                </p>
+              </div>
+            </div>
+
+            {/* Mars Colony */}
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl overflow-hidden border border-white/20 hover:transform hover:scale-105 transition-all duration-300">
+              <div className="relative h-64 overflow-hidden">
+                <img 
+                  src="https://images.pexels.com/photos/586063/pexels-photo-586063.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop"
+                  alt="Astronauts and colonists working together in a Mars colony with futuristic habitats and red landscape"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                <div className="absolute bottom-4 left-4">
+                  <span className="bg-orange-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                    Mars
+                  </span>
+                </div>
+              </div>
+              <div className="p-6">
+                <h4 className="text-xl font-semibold text-white mb-3">New Frontiers</h4>
+                <p className="text-blue-100 text-sm leading-relaxed">
+                  Pioneering colonies on Mars where humanity adapts to extreme environments, develops 
+                  innovative governance for space habitats, and creates self-sustaining interplanetary societies.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Key Metrics Preview */}
       <section className="px-6 py-16">
         <div className="max-w-6xl mx-auto">
