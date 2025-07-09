@@ -1,6 +1,10 @@
 import React from 'react';
+import { useState, useEffect } from 'react';
 import { ChevronRight, Globe, Scale, FileText, BarChart3, Users, Zap, LogIn, LogOut, BookOpen } from 'lucide-react';
 import { User } from '../types';
+import LeaderboardSection from './LeaderboardSection';
+import { getNationById } from '../utils/leaderboard';
+import { analytics } from '../utils/analytics';
 
 interface LandingPageProps {
   onStartAssessment: () => void;
@@ -25,6 +29,48 @@ export default function LandingPage({
   savedNationsCount = 0,
   maxNations = 5
 }: LandingPageProps) {
+  const [sharedNation, setSharedNation] = useState<any>(null);
+  const [showSharedNation, setShowSharedNation] = useState(false);
+
+  useEffect(() => {
+    // Check for shared nation in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const sharedData = urlParams.get('shared');
+    
+    if (sharedData) {
+      try {
+        const decodedData = JSON.parse(atob(sharedData));
+        setSharedNation(decodedData);
+        setShowSharedNation(true);
+        
+        // Clean up URL
+        window.history.replaceState({}, '', window.location.pathname);
+      } catch (error) {
+        console.error('Failed to decode shared nation data:', error);
+      }
+    }
+
+    // Initialize analytics
+    analytics.startSession(user?.id);
+
+    return () => {
+      analytics.endSession(user?.id);
+    };
+  }, [user]);
+
+  const handleViewLeaderboardNation = async (nationId: string) => {
+    try {
+      const nation = await getNationById(nationId);
+      if (nation) {
+        setSharedNation(nation);
+        setShowSharedNation(true);
+      }
+    } catch (error) {
+      console.error('Failed to load nation:', error);
+      alert('Failed to load nation. Please try again.');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900">
       {/* Header */}
@@ -235,6 +281,13 @@ export default function LandingPage({
         </div>
       </section>
 
+      {/* Leaderboard Section */}
+      <LeaderboardSection 
+        onViewNation={handleViewLeaderboardNation}
+        user={user}
+        onLogin={onLogin}
+      />
+
       {/* Key Metrics Preview */}
       <section className="px-6 py-16">
         <div className="max-w-6xl mx-auto">
@@ -282,6 +335,99 @@ export default function LandingPage({
           </p>
         </div>
       </footer>
+
+      {/* Shared Nation Modal */}
+      {showSharedNation && sharedNation && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4 flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <Globe className="h-6 w-6 text-white" />
+                <h2 className="text-xl font-bold text-white">{sharedNation.name}</h2>
+              </div>
+              <button
+                onClick={() => setShowSharedNation(false)}
+                className="text-white hover:text-blue-200 transition-colors text-2xl"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="p-6">
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <h4 className="font-semibold text-gray-800">Population</h4>
+                    <p className="text-gray-600">{sharedNation.assessmentData.population.toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-800">Territory</h4>
+                    <p className="text-gray-600">{sharedNation.assessmentData.territory.toLocaleString()} km²</p>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-800">Location</h4>
+                    <p className="text-gray-600">{sharedNation.assessmentData.location}</p>
+                  </div>
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-2">Economic Model</h4>
+                  <p className="text-gray-600">{sharedNation.assessmentData.economicModel}</p>
+                </div>
+                  <div>
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-2">Social Organization</h4>
+                  <p className="text-gray-600">
+                    {Array.isArray(sharedNation.assessmentData.socialOrganization) 
+                      ? sharedNation.assessmentData.socialOrganization.join(', ')
+                      : sharedNation.assessmentData.socialOrganization}
+                  </p>
+                </div>
+                    <h4 className="font-semibold text-gray-800">Political System</h4>
+                {sharedNation.assessmentData.environmentalChallenges?.length > 0 && (
+                  <div>
+                    <h4 className="font-semibold text-gray-800 mb-2">Environmental Challenges</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {sharedNation.assessmentData.environmentalChallenges.map((challenge: string) => (
+                        <span key={challenge} className="bg-red-100 text-red-800 px-2 py-1 rounded-full text-sm">
+                          {challenge}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                    <p className="text-gray-600">{sharedNation.assessmentData.politicalStructure}</p>
+                {sharedNation.customPolicies && Object.keys(sharedNation.customPolicies).length > 0 && (
+                  <div>
+                    <h4 className="font-semibold text-gray-800 mb-2">Custom Policies</h4>
+                    <div className="space-y-2">
+                      {Object.entries(sharedNation.customPolicies).map(([key, value]) => (
+                        value && (
+                          <div key={key} className="bg-gray-50 p-3 rounded-lg">
+                            <h5 className="font-medium text-gray-700 capitalize">{key}</h5>
+                            <p className="text-gray-600 text-sm mt-1">{value as string}</p>
+                          </div>
+                        )
+                      ))}
+                    </div>
+                  </div>
+                )}
+                  </div>
+                <div className="text-sm text-gray-500 pt-4 border-t">
+                  Created: {new Date(sharedNation.createdAt).toLocaleDateString()}
+                </div>
+              </div>
+                </div>
+              <div className="mt-6 flex justify-center">
+                <button
+                  onClick={onStartAssessment}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
+                >
+                  Create Your Own Nation
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

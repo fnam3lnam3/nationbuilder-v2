@@ -11,6 +11,7 @@ import SuccessPage from './components/SuccessPage';
 import SavedNations from './components/SavedNations';
 import SaveNationDialog from './components/SaveNationDialog';
 import { AssessmentData, User, SavedNation } from './types';
+import { analytics } from './utils/analytics';
 
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
@@ -51,6 +52,7 @@ function App() {
           createdAt: new Date(session.user.created_at)
         });
         fetchSubscription();
+        analytics.logUserLogin(session.user.id);
       }
     });
 
@@ -68,7 +70,11 @@ function App() {
             createdAt: new Date(session.user.created_at)
           });
           fetchSubscription();
+          analytics.logUserLogin(session.user.id);
         } else if (event === 'SIGNED_OUT') {
+          if (user) {
+            analytics.logUserLogout(user.id);
+          }
           setUser(null);
           setSubscription(null);
           setSavedNations([]);
@@ -178,6 +184,9 @@ function App() {
   };
 
   const handleLogout = () => {
+    if (user) {
+      analytics.logUserLogout(user.id);
+    }
     supabase.auth.signOut();
   };
 
@@ -200,6 +209,7 @@ function App() {
         // If user was logged in, link any temporary nation
         if (user && tempNationCreated) {
           await sessionManager.linkToUser(user.id);
+          analytics.logNationCreated(user.id, { name, assessmentData });
         }
       }
       
@@ -225,6 +235,10 @@ function App() {
 
   const handleDeleteNation = (nationId: string) => {
     if (!window.confirm('Are you sure you want to delete this nation?')) return;
+    
+    if (user) {
+      analytics.logNationDeleted(user.id, nationId);
+    }
     
     savedNationsManager.deleteNation(nationId).then(success => {
       if (success && currentNationId === nationId) {

@@ -15,6 +15,8 @@ export interface SavedNationsManager {
   deleteNation: (id: string) => Promise<boolean>;
   refreshNations: () => Promise<void>;
   getMaxNations: () => number;
+  makeNationPublic: (id: string) => Promise<string | null>;
+  makeNationPrivate: (id: string) => Promise<boolean>;
 }
 
 export function useSavedNations(user: User | null, subscription: any): SavedNationsManager {
@@ -146,6 +148,44 @@ export function useSavedNations(user: User | null, subscription: any): SavedNati
     }
   };
 
+  const makeNationPublic = async (id: string): Promise<string | null> => {
+    if (!user) throw new Error('User must be logged in to make nations public');
+
+    try {
+      const { data, error } = await supabase.rpc('make_nation_public', {
+        nation_id: id,
+        user_id: user.id
+      });
+
+      if (error) throw error;
+      
+      await refreshNations();
+      return data; // Returns share token
+    } catch (error) {
+      console.error('Error making nation public:', error);
+      return null;
+    }
+  };
+
+  const makeNationPrivate = async (id: string): Promise<boolean> => {
+    if (!user) throw new Error('User must be logged in to make nations private');
+
+    try {
+      const { data, error } = await supabase.rpc('make_nation_private', {
+        nation_id: id,
+        user_id: user.id
+      });
+
+      if (error) throw error;
+      
+      await refreshNations();
+      return data;
+    } catch (error) {
+      console.error('Error making nation private:', error);
+      return false;
+    }
+  };
+
   useEffect(() => {
     refreshNations();
   }, [user]);
@@ -157,6 +197,8 @@ export function useSavedNations(user: User | null, subscription: any): SavedNati
     updateNation,
     deleteNation,
     refreshNations,
-    getMaxNations
+    getMaxNations,
+    makeNationPublic,
+    makeNationPrivate
   };
 }
