@@ -181,7 +181,7 @@ export default function LandingPage({
             </a>
           </p>
           <p className="text-sm text-blue-100 mb-4 max-w-2xl mx-auto">
-            A GPT AI-powered app that creates a Nation with a government, economy, society, and resourcing that you define. Download a free, model constitution. AI assessment pulls from human history and a simulation model to assess and optimize your nation.
+            Nationbuilder is an AI-powered app that creates a Nation with a government, economy, society, and resourcing that you define. Download a free, model constitution. AI assessment pulls from human history and a simulation model to assess and optimize your nation.
           </p>
           <button
             onClick={onStartAssessment}
