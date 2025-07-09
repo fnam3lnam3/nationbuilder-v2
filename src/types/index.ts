@@ -11,7 +11,7 @@ export interface AssessmentData {
   environmentalChallenges: string[];
   economicModel: string;
   politicalStructure: string;
-  socialOrganization: string;
+  socialOrganization: string[];
   educationSystem: string[];
   healthcare: string[];
   security: string[];

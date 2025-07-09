@@ -23,7 +23,7 @@ export default function AssessmentForm({ onComplete, onBack, initialData }: Asse
     environmentalChallenges: [],
     economicModel: '',
     politicalStructure: '',
-    socialOrganization: '',
+    socialOrganization: [],
     educationSystem: [],
     healthcare: [],
     security: [],
@@ -63,11 +63,17 @@ export default function AssessmentForm({ onComplete, onBack, initialData }: Asse
         location: 'Location Type',
         economicModel: 'Economic Model',
         politicalStructure: 'Political Structure',
-        socialOrganization: 'Social Organization'
+        socialOrganization: 'Social Organization (at least one)'
       };
       
       const missingFields = Object.entries(requiredFields)
-        .filter(([key]) => !formData[key as keyof AssessmentData])
+        .filter(([key]) => {
+          const value = formData[key as keyof AssessmentData];
+          if (key === 'socialOrganization') {
+            return !Array.isArray(value) || value.length === 0;
+          }
+          return !value;
+        })
         .map(([, label]) => label);
       
       if (missingFields.length > 0) {
@@ -84,6 +90,7 @@ export default function AssessmentForm({ onComplete, onBack, initialData }: Asse
         healthcare: formData.healthcare || [],
         security: formData.security || [],
         resourceManagement: formData.resourceManagement || [],
+        socialOrganization: formData.socialOrganization || [],
         legalFramework: formData.legalFramework || []
       };
       
@@ -91,7 +98,8 @@ export default function AssessmentForm({ onComplete, onBack, initialData }: Asse
       
       // Additional validation before submission
       if (!completeFormData.location || !completeFormData.economicModel || 
-          !completeFormData.politicalStructure || !completeFormData.socialOrganization) {
+          !completeFormData.politicalStructure || !Array.isArray(completeFormData.socialOrganization) || 
+          completeFormData.socialOrganization.length === 0) {
         console.error('Critical validation failed:', completeFormData);
         alert('Assessment data is incomplete. Please review all steps.');
         return;
@@ -353,16 +361,15 @@ export default function AssessmentForm({ onComplete, onBack, initialData }: Asse
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-3">Social Organization and Clout Sources</label>
-              <div className="space-y-2">
+              <p className="text-sm text-gray-600 mb-3">Check all that apply.</p>
+              <div className="grid grid-cols-2 gap-3">
                 {['Individualism', 'Communalism', 'Caste heritage', 'Merit-based', 'Wealth-based', 'Knowledge-based', 'Seniority-based', 'Ethical acts-based'].map(org => (
                   <label key={org} className="flex items-center space-x-2 cursor-pointer">
                     <input
-                      type="radio"
-                      name="socialOrganization"
-                      value={org}
-                      checked={formData.socialOrganization === org}
-                      onChange={(e) => handleInputChange('socialOrganization', e.target.value)}
-                      className="border-gray-300 text-blue-600 focus:ring-blue-500"
+                      type="checkbox"
+                      checked={formData.socialOrganization.includes(org)}
+                      onChange={() => handleArrayToggle('socialOrganization', org)}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
                     <span className="text-sm text-gray-700">{org}</span>
                   </label>

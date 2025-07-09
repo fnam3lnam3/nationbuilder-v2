@@ -64,11 +64,16 @@ export default function ResultsDashboard({
   }
   
   // Validate required fields
-  const requiredFields = ['location', 'economicModel', 'politicalStructure', 'socialOrganization'];
+  const requiredFields = ['location', 'economicModel', 'politicalStructure'];
   const missingFields = requiredFields.filter(field => {
     const value = assessmentData[field as keyof AssessmentData];
     return !value || (typeof value === 'string' && value.trim() === '');
   });
+  
+  // Special validation for socialOrganization array
+  if (!Array.isArray(assessmentData.socialOrganization) || assessmentData.socialOrganization.length === 0) {
+    missingFields.push('socialOrganization');
+  }
   
   if (missingFields.length > 0) {
     console.error('Missing required fields:', missingFields);
@@ -95,7 +100,8 @@ export default function ResultsDashboard({
     
     try {
       // Validate data before processing
-      if (!data.location || !data.economicModel || !data.politicalStructure || !data.socialOrganization) {
+      if (!data.location || !data.economicModel || !data.politicalStructure || 
+          !Array.isArray(data.socialOrganization) || data.socialOrganization.length === 0) {
         throw new Error('Missing required assessment data fields');
       }
       
@@ -265,8 +271,8 @@ export default function ResultsDashboard({
 
   const getGovernanceRecommendation = (data: AssessmentData): string => {
     if (data.politicalStructure === 'Direct democracy') return 'Digital Direct Democracy with AI-assisted decision support';
-    if (data.politicalStructure === 'Technocracy') return 'Merit-based Technocratic Council with citizen oversight';
-    if (data.politicalStructure === 'AI-assisted governance') return 'Hybrid AI-Human governance with democratic validation';
+    if (data.politicalStructure === 'Socialism') return 'Merit-based Technocratic Council with citizen oversight';
+    if (data.politicalStructure === 'AI-run') return 'Hybrid AI-Human governance with democratic validation';
     return 'Adaptive Representative Democracy with technological enhancement';
   };
 
@@ -290,6 +296,9 @@ export default function ResultsDashboard({
     if (data.languages > 3) policies.push('Multilingual Rights Protection');
     if (data.religiousDiversity > 7) policies.push('Religious Freedom Safeguards');
     if (data.environmentalChallenges.includes('Limited space')) policies.push('Space Optimization Programs');
+    if (data.socialOrganization.includes('Merit-based')) policies.push('Merit-based Advancement Programs');
+    if (data.socialOrganization.includes('Wealth-based')) policies.push('Wealth Redistribution Mechanisms');
+    if (data.socialOrganization.includes('Knowledge-based')) policies.push('Knowledge Sharing Initiatives');
     return policies;
   };
 
@@ -309,10 +318,16 @@ export default function ResultsDashboard({
     if (data.educationLevel >= 7) strengths.push('High human capital potential');
     if (data.technologyLevel >= 7) strengths.push('Advanced technological foundation');
     if (data.resources >= 7) strengths.push('Abundant natural resources');
+    if (data.socialOrganization.includes('Merit-based')) strengths.push('Merit-based social mobility');
+    if (data.socialOrganization.includes('Knowledge-based')) strengths.push('Knowledge-driven society');
     
     if (data.languages > 5) weaknesses.push('Communication complexity challenges');
     if (data.religiousDiversity > 8) weaknesses.push('Potential cultural friction points');
     if (data.environmentalChallenges.length > 4) weaknesses.push('Environmental stress factors');
+    if (data.socialOrganization.includes('Caste heritage')) weaknesses.push('Rigid social hierarchy challenges');
+    if (data.socialOrganization.includes('Wealth-based') && !data.socialOrganization.includes('Merit-based')) {
+      weaknesses.push('Potential inequality and social stratification');
+    }
     
     return { strengths, weaknesses };
   };
@@ -322,9 +337,13 @@ export default function ResultsDashboard({
     const economicClause = policies.economic ? `\n\nEconomic Policies: ${policies.economic}` : '';
     const judicialClause = policies.judicial ? `\n\nJudicial Procedures: ${policies.judicial}` : '';
     const environmentalClause = policies.environmental ? `\n\nEnvironmental Stewardship: ${policies.environmental}` : '';
+    
+    const socialOrganizationText = Array.isArray(data.socialOrganization) 
+      ? data.socialOrganization.join(', ').toLowerCase()
+      : 'balanced social organization';
 
     return {
-      preamble: `We, the people of this nation, united in our commitment to ${data.socialOrganization === 'Individual-focused' ? 'individual liberty and personal responsibility' : 'collective prosperity and social harmony'}, establish this Constitution to ensure ${data.politicalStructure === 'Direct democracy' ? 'direct democratic participation' : 'effective governance'} and promote the general welfare of all citizens.${ethicalClause}`,
+      preamble: `We, the people of this nation, united in our commitment to ${data.socialOrganization.includes('Individualism') ? 'individual liberty and personal responsibility' : 'collective prosperity and social harmony'} through ${socialOrganizationText}, establish this Constitution to ensure ${data.politicalStructure === 'Direct democracy' ? 'direct democratic participation' : 'effective governance'} and promote the general welfare of all citizens.${ethicalClause}`,
       articles: [
         {
           title: 'Fundamental Rights and Freedoms',

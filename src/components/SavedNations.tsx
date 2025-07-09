@@ -36,6 +36,9 @@ export default function SavedNations({ nations, onLoad, onDelete, onEdit }: Save
                   <p>Population: {nation.assessmentData.population.toLocaleString()}</p>
                   <p>Location: {nation.assessmentData.location}</p>
                   <p>Political: {nation.assessmentData.politicalStructure}</p>
+                  <p>Social: {Array.isArray(nation.assessmentData.socialOrganization) 
+                    ? nation.assessmentData.socialOrganization.join(', ') 
+                    : nation.assessmentData.socialOrganization}</p>
                   <div className="flex items-center space-x-1 mt-2">
                     <Calendar className="h-4 w-4" />
                     <span>Created: {new Date(nation.createdAt).toLocaleDateString()}</span>

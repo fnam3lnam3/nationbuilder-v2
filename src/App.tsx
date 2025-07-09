@@ -111,7 +111,8 @@ function App() {
     });
     
     // Validate that we have the required data
-    if (!data || !data.location || !data.economicModel || !data.politicalStructure || !data.socialOrganization) {
+    if (!data || !data.location || !data.economicModel || !data.politicalStructure || 
+        !Array.isArray(data.socialOrganization) || data.socialOrganization.length === 0) {
       console.error('Invalid assessment data received:', data);
       alert('Assessment data is incomplete. Please complete all required fields and try again.');
       setCurrentState('assessment'); // Go back to assessment instead of staying on results
