@@ -31,8 +31,11 @@ export default function ResultsDashboard({
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [nationName, setNationName] = useState('');
   
-  // Debug logging
-  console.log('ResultsDashboard rendered with assessmentData:', assessmentData);
+  // Debug logging - more detailed
+  console.log('ResultsDashboard - Component rendered');
+  console.log('ResultsDashboard - assessmentData:', assessmentData);
+  console.log('ResultsDashboard - assessmentData type:', typeof assessmentData);
+  console.log('ResultsDashboard - assessmentData keys:', assessmentData ? Object.keys(assessmentData) : 'null');
   
   // Early return if no assessment data
   if (!assessmentData) {
@@ -77,6 +80,9 @@ export default function ResultsDashboard({
   
   // Mock results generation based on assessment data
   const generateResults = (data: AssessmentData): ResultsData => {
+    console.log('ResultsDashboard - generateResults called with:', data);
+    
+    try {
     // This would normally call an AI service
     const baseEfficiency = Math.min(90, (data.resources * 8) + (data.technologyLevel * 5) + (data.educationLevel * 3));
     const baseRights = Math.min(95, (data.educationLevel * 7) + (data.technologyLevel * 4) + (data.religiousDiversity * 3));
@@ -118,6 +124,10 @@ export default function ResultsDashboard({
       },
       constitution: generateConstitution(data, customPolicies)
     };
+    } catch (error) {
+      console.error('Error in generateResults:', error);
+      throw error;
+    }
   };
 
   const getActualGovernanceType = (data: AssessmentData): string => {
