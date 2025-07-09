@@ -399,7 +399,7 @@ export default function ResultsDashboard({
       {/* Navigation Tabs */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <nav className="flex space-x-8">
+          <nav className="flex space-x-6">
             {[
               { id: 'overview', label: 'Overview', icon: BarChart3 },
               { id: 'analysis', label: 'Detailed Analysis', icon: TrendingUp },
@@ -408,13 +408,13 @@ export default function ResultsDashboard({
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm ${
+                className={`flex items-center space-x-2 py-3 px-2 border-b-2 font-semibold text-xs transition-colors ${
                   activeTab === tab.id
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-blue-600 text-blue-700 bg-blue-50'
+                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-400 hover:bg-gray-50'
                 }`}
               >
-                <tab.icon className="h-4 w-4" />
+                <tab.icon className="h-3.5 w-3.5" />
                 <span>{tab.label}</span>
               </button>
             ))}
@@ -544,11 +544,11 @@ export default function ResultsDashboard({
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Political System Analysis</h3>
               <div className="space-y-4">
                 <div>
-                  <h4 className="font-medium text-gray-700">Actual Governance Type</h4>
+                  <h4 className="font-bold text-gray-800">Actual Governance Type</h4>
                   <p className="text-gray-600">{results.politicalAnalysis.actualGovernanceType}</p>
                 </div>
                 <div>
-                  <h4 className="font-medium text-gray-700">Evolution Prediction</h4>
+                  <h4 className="font-bold text-gray-800">Evolution Prediction</h4>
                   <p className="text-gray-600">{results.politicalAnalysis.evolutionPrediction}</p>
                 </div>
                 <div>
@@ -575,11 +575,11 @@ export default function ResultsDashboard({
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Economic System Analysis</h3>
               <div className="space-y-4">
                 <div>
-                  <h4 className="font-medium text-gray-700">Actual Economic System</h4>
+                  <h4 className="font-bold text-gray-800">Actual Economic System</h4>
                   <p className="text-gray-600">{results.economicAnalysis.actualEconomicSystem}</p>
                 </div>
                 <div>
-                  <h4 className="font-medium text-gray-700">System Evolution</h4>
+                  <h4 className="font-bold text-gray-800">System Evolution</h4>
                   <p className="text-gray-600">{results.economicAnalysis.systemEvolution}</p>
                 </div>
                 <div>

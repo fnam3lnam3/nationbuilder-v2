@@ -224,7 +224,7 @@ function App() {
   };
 
   const handleDeleteNation = (nationId: string) => {
-    if (!confirm('Are you sure you want to delete this nation?')) return;
+    if (!window.confirm('Are you sure you want to delete this nation?')) return;
     
     savedNationsManager.deleteNation(nationId).then(success => {
       if (success && currentNationId === nationId) {
