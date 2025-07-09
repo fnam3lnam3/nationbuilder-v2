@@ -61,6 +61,20 @@ export default function AssessmentForm({ onComplete, onBack, initialData }: Asse
         alert('Please complete all required fields before proceeding.');
         return;
       }
+      
+      // Ensure arrays are properly initialized
+      const completeFormData = {
+        ...formData,
+        climate: formData.climate || [],
+        environmentalChallenges: formData.environmentalChallenges || [],
+        educationSystem: formData.educationSystem || [],
+        healthcare: formData.healthcare || [],
+        security: formData.security || [],
+        resourceManagement: formData.resourceManagement || [],
+        legalFramework: formData.legalFramework || []
+      };
+      
+      console.log('Submitting assessment data:', completeFormData);
       onComplete(formData);
     }
   };

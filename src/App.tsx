@@ -114,7 +114,19 @@ function App() {
       return;
     }
     
-    setAssessmentData(data);
+    // Ensure all array fields are properly initialized
+    const sanitizedData = {
+      ...data,
+      climate: data.climate || [],
+      environmentalChallenges: data.environmentalChallenges || [],
+      educationSystem: data.educationSystem || [],
+      healthcare: data.healthcare || [],
+      security: data.security || [],
+      resourceManagement: data.resourceManagement || [],
+      legalFramework: data.legalFramework || []
+    };
+    
+    setAssessmentData(sanitizedData);
     setCurrentState('results');
   };
 
