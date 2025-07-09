@@ -1,7 +1,5 @@
 import React from 'react';
-import { useState } from 'react';
 import { ChevronRight, Globe, Scale, FileText, BarChart3, Users, Zap, LogIn, LogOut, BookOpen } from 'lucide-react';
-import USAUserTest from './USAUserTest';
 import { User } from '../types';
 
 interface LandingPageProps {
@@ -27,8 +25,6 @@ export default function LandingPage({
   savedNationsCount = 0,
   maxNations = 5
 }: LandingPageProps) {
-  const [showUSATest, setShowUSATest] = useState(false);
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900">
       {/* Header */}
@@ -42,12 +38,6 @@ export default function LandingPage({
           <div className="flex items-center space-x-4">
             {user ? (
               <>
-                <button
-                  onClick={() => setShowUSATest(true)}
-                  className="text-blue-100 hover:text-white text-sm transition-colors"
-                >
-                  USA Test
-                </button>
                 <div className="flex items-center space-x-2">
                   <span className="text-blue-100">Welcome, {user.username}</span>
                   {subscription?.subscription_status === 'active' && (
@@ -211,11 +201,6 @@ export default function LandingPage({
           </p>
         </div>
       </footer>
-
-      {/* USA User Test Modal */}
-      {showUSATest && (
-        <USAUserTest onClose={() => setShowUSATest(false)} />
-      )}
     </div>
   );
 }
