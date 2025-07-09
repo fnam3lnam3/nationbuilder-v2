@@ -12,6 +12,7 @@ import SavedNations from './components/SavedNations';
 import SaveNationDialog from './components/SaveNationDialog';
 import { AssessmentData, User, SavedNation } from './types';
 import { analytics } from './utils/analytics';
+import './utils/populateLeaderboards';
 
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
