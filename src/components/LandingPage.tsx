@@ -164,7 +164,9 @@ export default function LandingPage({
             </span>
           </h2>
           <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Make a Utopia. Rule a Dystopia. Colonize Mars.
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-400 font-bold">
+              Make a Utopia. Rule a Dystopia. Colonize Mars.
+            </span>
           </p>
           <p className="text-xl text-blue-100 mb-4 max-w-2xl mx-auto -mt-6">
             <a 
