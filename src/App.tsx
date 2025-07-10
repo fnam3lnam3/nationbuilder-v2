@@ -18,7 +18,7 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
-import SavedNations from './SavedNations';
+import SavedNations from './components/SavedNations';
 import { SavedNation } from '../types';
 import { analytics } from '../utils/analytics';
 
